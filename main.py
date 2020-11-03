@@ -2,6 +2,10 @@
 from bs4 import BeautifulSoup
 import requests
 import datetime
+from getopt import getopt
+import sys
+
+# global variables
 url = ""
 current_dateTime = None
 sunset_dateTime = None
@@ -39,6 +43,27 @@ def getIcon(weather_condition):
 
 
 def main():
+	try:
+		opts, args = getopt(sys.argv[1:], "ho:v", ["help", "output="])
+	except getopt.GetoptError as err:
+		print(err)
+		sys.exit(2)
+
+	output = None
+	verbose = False
+	for o, a in opts:
+		if o == "-v":
+			print("option -v")
+			verbose = True
+		elif o in ("-h", "--help"):
+			print("option -h, --help")
+			sys.exit()
+		elif o in ("-o", "--output"):
+			print("option -o, --output")
+			output = a
+		else:
+			assert False, "unhandled option"
+
 	global 	current_dateTime, sunset_dateTime, sunrise_dateTime
 	if not url:
 		print('url not specified: visit https://weather.com/en-GB/, enter your destination and pate url in \'url\' variable')
