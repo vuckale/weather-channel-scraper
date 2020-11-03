@@ -49,6 +49,10 @@ def main():
 		print(err)
 		sys.exit(2)
 
+	if not opts:
+		print("ERROR: no option specified")
+		sys.exit()
+
 	output = None
 	verbose = False
 	current_flag = False
@@ -66,7 +70,6 @@ def main():
 			output = a
 		else:
 			assert False, "unhandled option"
-
 	global 	current_dateTime, sunset_dateTime, sunrise_dateTime
 	if (current_flag):
 		if not url:
