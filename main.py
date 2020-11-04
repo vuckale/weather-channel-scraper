@@ -53,25 +53,30 @@ def main():
 	parser.add_option("-s", "--sunrise-sunset",
                   action="store_true", dest="sunrise_sunset",
                   help="print datetime for sunrise and sunset in set location")
+	parser.add_option("-u", "--url",
+                  action="store", dest="url",
+                  help="use this url to fetch weather data")
 	(options, args) = parser.parse_args()
 
 	count_None = 0
 	for key, value in options.__dict__.items():
-		if value != None:
+		if value != None and key != 'url':
 			continue
 		else:
 			count_None += 1
 
 	if count_None == len(options.__dict__.items()):
-		print('ERROR: at least one option should be provided')
 		sys.exit()
 
 	global 	current_dateTime, sunset_dateTime, sunrise_dateTime
-	if not url:
+	if not url and (not options.url):
 			print('url not specified: visit https://weather.com/en-GB/, enter your destination and pate url in \'url\' variable')
 	else:
 		try:
-			html_doc = requests.get(url).text
+			if url:
+				html_doc = requests.get(url).text
+			else:
+				html_doc = requests.get(options.url).text
 			soup = BeautifulSoup(html_doc, 'html.parser')
 			sunrise_sunset = soup.find("div", {"class" : "SunriseSunset--datesContainer--3YG_Q"})
 			sunrise = sunrise_sunset.find("div" , {"data-testid" : "SunriseValue"}).p.string
