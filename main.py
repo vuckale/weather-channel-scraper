@@ -8,11 +8,11 @@ from optparse import OptionParser
 import optparse
 
 # global variables
-url = ""
+url=""
 current_dateTime = None
 sunset_dateTime = None
 sunrise_dateTime = None
-
+soup = None
 
 def sunIsUp():
 	global current_dateTime, sunset_dateTime, sunrise_dateTime
@@ -56,6 +56,9 @@ def main():
 	parser.add_option("-u", "--url",
                   action="store", dest="url",
                   help="use this url to fetch weather data")
+	parser.add_option("-d", "--details",
+                  action="store_true", dest="details",
+                  help="print details for current weather")
 	(options, args) = parser.parse_args()
 
 	count_None = 0
@@ -66,9 +69,10 @@ def main():
 			count_None += 1
 
 	if count_None == len(options.__dict__.items()):
+		parser.print_help()
 		sys.exit()
 
-	global 	current_dateTime, sunset_dateTime, sunrise_dateTime
+	global 	current_dateTime, sunset_dateTime, sunrise_dateTime, url, soup
 	if not url and (not options.url):
 			print('url not specified: visit https://weather.com/en-GB/, enter your destination and pate url in \'url\' variable')
 	else:
@@ -95,7 +99,12 @@ def main():
 			print(getIcon(weather_condition) + ' ' + temperature + 'C')
 		if options.sunrise_sunset:
 			print('sunrise at: ' + str(sunrise_dateTime.hour) + ':' + str(sunrise_dateTime.minute) + ' | ' +'sunset at: ' + str(sunset_dateTime.hour) + ':' + str(sunset_dateTime.minute))
-
+		if options.details:
+			details = soup.select('section[data-testid^=TodaysDetailsModule]')[0]
+			feels_like = details.select('div[data-testid^=FeelsLikeSection]')[0]
+			feels_like_label = feels_like.select('span[data-testid^=FeelsLikeLabel]')[0].text
+			feels_like_temp = feels_like.select('span[data-testid^=TemperatureValue]')[0].text
+			print(feels_like_label + ' ' + feels_like_temp)
 
 if __name__ == "__main__":
     main()
