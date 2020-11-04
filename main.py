@@ -50,6 +50,9 @@ def main():
 	parser.add_option("-c", "--current",
                   action="store_true", dest="current",
                   help="print current weather temperature in set location")
+	parser.add_option("-s", "--sunrise-sunset",
+                  action="store_true", dest="sunrise_sunset",
+                  help="print datetime for sunrise and sunset in set location")
 	(options, args) = parser.parse_args()
 
 	count_None = 0
@@ -85,6 +88,8 @@ def main():
 			pass
 		if options.current:
 			print(getIcon(weather_condition) + ' ' + temperature + 'C')
+		if options.sunrise_sunset:
+			print('sunrise at: ' + str(sunrise_dateTime.hour) + ':' + str(sunrise_dateTime.minute) + ' | ' +'sunset at: ' + str(sunset_dateTime.hour) + ':' + str(sunset_dateTime.minute))
 
 
 if __name__ == "__main__":
