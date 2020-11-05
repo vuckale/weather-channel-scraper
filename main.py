@@ -104,7 +104,41 @@ def main():
 			feels_like = details.select('div[data-testid^=FeelsLikeSection]')[0]
 			feels_like_label = feels_like.select('span[data-testid^=FeelsLikeLabel]')[0].text
 			feels_like_temp = feels_like.select('span[data-testid^=TemperatureValue]')[0].text
-			print(feels_like_label + ' ' + feels_like_temp)
+			print(feels_like_label + ' -> ' + feels_like_temp)
+			other_details_list = details.select('div[data-testid^=WeatherDetailsListItem]')
+			high_low = other_details_list[0]
+			high_low_label = high_low.select('div[data-testid^=WeatherDetailsLabel]')
+			high_low_data = high_low.select('div[data-testid^=wxData]')
+			print(high_low_label[0].text + ' -> ' + high_low_data[0].text)
+			wind = other_details_list[1]
+			wind_label = wind.select('div[data-testid^=WeatherDetailsLabel]')
+			wind_data = wind.select('div[data-testid^=wxData]')
+			print(wind_label[0].text + ' -> ' + wind_data[0].text)
+			humidity = other_details_list[2]
+			humidity_label = humidity.select('div[data-testid^=WeatherDetailsLabel]')
+			humidity_data = humidity.select('div[data-testid^=wxData]')
+			print(humidity_label[0].text + ' -> ' + humidity_data[0].text)
+			dew_point = other_details_list[3]
+			dew_point_label = dew_point.select('div[data-testid^=WeatherDetailsLabel]')
+			dew_point_data = dew_point.select('div[data-testid^=wxData]')
+			print(dew_point_label[0].text + ' -> ' + dew_point_data[0].text)
+			pressure = other_details_list[4]
+			pressure_label = pressure.select('div[data-testid^=WeatherDetailsLabel]')
+			pressure_data = pressure.select('div[data-testid^=wxData]')
+			print(pressure_label[0].text + ' -> ' + pressure_data[0].text)
+			uv_index = other_details_list[5]
+			uv_index_label = uv_index.select('div[data-testid^=WeatherDetailsLabel]')
+			uv_index_data = uv_index.select('div[data-testid^=wxData]')
+			print(uv_index_label[0].text + ' -> ' + uv_index_data[0].text)
+			visibility = other_details_list[6]
+			visibility_label = visibility.select('div[data-testid^=WeatherDetailsLabel]')
+			visibility_data = visibility.select('div[data-testid^=wxData]')
+			print(visibility_label[0].text + ' -> ' + visibility_data[0].text)
+			moon_phase = other_details_list[7]
+			moon_phase_label = moon_phase.select('div[data-testid^=WeatherDetailsLabel]')
+			moon_phase_data = moon_phase.select('div[data-testid^=wxData]')
+			print(moon_phase_label[0].text + ' -> ' + moon_phase_data[0].text)
+
 
 if __name__ == "__main__":
     main()
