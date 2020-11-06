@@ -4,7 +4,7 @@ import requests
 import datetime
 from getopt import getopt
 import sys
-from optparse import OptionParser
+from optparse import OptionParser, OptionValueError
 import optparse
 
 # global variables
@@ -42,6 +42,17 @@ def getIcon(weather_condition):
 		'Windy':'' 
 	}
 	return options[weather_condition]
+details_dict = {
+	"--d-high-low" : False,
+	"--d-feels-like" : False,
+	"--d-wind" : False
+}
+
+
+def check_options(option, opt_str, value, parser):
+	if parser.values.details:
+		raise OptionValueError('ERROR: either option -d, --details alone or multiple --d-* options can be passed')
+	details_dict[opt_str] = True
 
 
 def main():
@@ -59,6 +70,16 @@ def main():
 	parser.add_option("-d", "--details",
                   action="store_true", dest="details",
                   help="print details for current weather")
+	parser.add_option("--d-feels-like",
+                  action="callback", callback=check_options,
+                  help="print high/low for today")
+	parser.add_option("--d-high-low",
+                  action="callback", callback=check_options,
+                  help="print high/low for today")
+	parser.add_option("--d-wind",
+                  action="callback", callback=check_options,
+                  help="print wind speed for today")
+
 	(options, args) = parser.parse_args()
 
 	count_None = 0
@@ -68,7 +89,7 @@ def main():
 		else:
 			count_None += 1
 
-	if count_None == len(options.__dict__.items()):
+	if count_None == len(options.__dict__.items()) and not details_dict:
 		parser.print_help()
 		sys.exit()
 
@@ -99,45 +120,61 @@ def main():
 			print(getIcon(weather_condition) + ' ' + temperature + 'C')
 		if options.sunrise_sunset:
 			print('sunrise at: ' + str(sunrise_dateTime.hour) + ':' + str(sunrise_dateTime.minute) + ' | ' +'sunset at: ' + str(sunset_dateTime.hour) + ':' + str(sunset_dateTime.minute))
-		if options.details:
-			details = soup.select('section[data-testid^=TodaysDetailsModule]')[0]
-			feels_like = details.select('div[data-testid^=FeelsLikeSection]')[0]
-			feels_like_label = feels_like.select('span[data-testid^=FeelsLikeLabel]')[0].text
-			feels_like_temp = feels_like.select('span[data-testid^=TemperatureValue]')[0].text
+
+		details = soup.select('section[data-testid^=TodaysDetailsModule]')[0]
+		feels_like = details.select('div[data-testid^=FeelsLikeSection]')[0]
+		feels_like_label = feels_like.select('span[data-testid^=FeelsLikeLabel]')[0].text
+		feels_like_temp = feels_like.select('span[data-testid^=TemperatureValue]')[0].text
+		if details_dict["--d-feels-like"]:
 			print(feels_like_label + ' -> ' + feels_like_temp)
-			other_details_list = details.select('div[data-testid^=WeatherDetailsListItem]')
-			high_low = other_details_list[0]
-			high_low_label = high_low.select('div[data-testid^=WeatherDetailsLabel]')
-			high_low_data = high_low.select('div[data-testid^=wxData]')
+		other_details_list = details.select('div[data-testid^=WeatherDetailsListItem]')
+		high_low = other_details_list[0]
+		high_low_label = high_low.select('div[data-testid^=WeatherDetailsLabel]')
+		high_low_data = high_low.select('div[data-testid^=wxData]')
+		if details_dict["--d-high-low"]:
 			print(high_low_label[0].text + ' -> ' + high_low_data[0].text)
-			wind = other_details_list[1]
-			wind_label = wind.select('div[data-testid^=WeatherDetailsLabel]')
-			wind_data = wind.select('div[data-testid^=wxData]')
+		wind = other_details_list[1]
+		wind_label = wind.select('div[data-testid^=WeatherDetailsLabel]')
+		wind_data = wind.select('div[data-testid^=wxData]')
+		if details_dict["--d-wind"]:
 			print(wind_label[0].text + ' -> ' + wind_data[0].text)
-			humidity = other_details_list[2]
-			humidity_label = humidity.select('div[data-testid^=WeatherDetailsLabel]')
-			humidity_data = humidity.select('div[data-testid^=wxData]')
+		humidity = other_details_list[2]
+		humidity_label = humidity.select('div[data-testid^=WeatherDetailsLabel]')
+		humidity_data = humidity.select('div[data-testid^=wxData]')
+		# print(humidity_label[0].text + ' -> ' + humidity_data[0].text)
+		dew_point = other_details_list[3]
+		dew_point_label = dew_point.select('div[data-testid^=WeatherDetailsLabel]')
+		dew_point_data = dew_point.select('div[data-testid^=wxData]')
+		# print(dew_point_label[0].text + ' -> ' + dew_point_data[0].text)
+		pressure = other_details_list[4]
+		pressure_label = pressure.select('div[data-testid^=WeatherDetailsLabel]')
+		pressure_data = pressure.select('div[data-testid^=wxData]')
+		# print(pressure_label[0].text + ' -> ' + pressure_data[0].text)
+		uv_index = other_details_list[5]
+		uv_index_label = uv_index.select('div[data-testid^=WeatherDetailsLabel]')
+		uv_index_data = uv_index.select('div[data-testid^=wxData]')
+		# print(uv_index_label[0].text + ' -> ' + uv_index_data[0].text)
+		visibility = other_details_list[6]
+		visibility_label = visibility.select('div[data-testid^=WeatherDetailsLabel]')
+		visibility_data = visibility.select('div[data-testid^=wxData]')
+		# print(visibility_label[0].text + ' -> ' + visibility_data[0].text)
+		moon_phase = other_details_list[7]
+		moon_phase_label = moon_phase.select('div[data-testid^=WeatherDetailsLabel]')
+		moon_phase_data = moon_phase.select('div[data-testid^=wxData]')
+		# print(moon_phase_label[0].text + ' -> ' + moon_phase_data[0].text)
+
+		if options.details:
+			print(feels_like_label + ' -> ' + feels_like_temp)
+			print(high_low_label[0].text + ' -> ' + high_low_data[0].text)
+			print(wind_label[0].text + ' -> ' + wind_data[0].text)
 			print(humidity_label[0].text + ' -> ' + humidity_data[0].text)
-			dew_point = other_details_list[3]
-			dew_point_label = dew_point.select('div[data-testid^=WeatherDetailsLabel]')
-			dew_point_data = dew_point.select('div[data-testid^=wxData]')
 			print(dew_point_label[0].text + ' -> ' + dew_point_data[0].text)
-			pressure = other_details_list[4]
-			pressure_label = pressure.select('div[data-testid^=WeatherDetailsLabel]')
-			pressure_data = pressure.select('div[data-testid^=wxData]')
 			print(pressure_label[0].text + ' -> ' + pressure_data[0].text)
-			uv_index = other_details_list[5]
-			uv_index_label = uv_index.select('div[data-testid^=WeatherDetailsLabel]')
-			uv_index_data = uv_index.select('div[data-testid^=wxData]')
 			print(uv_index_label[0].text + ' -> ' + uv_index_data[0].text)
-			visibility = other_details_list[6]
-			visibility_label = visibility.select('div[data-testid^=WeatherDetailsLabel]')
-			visibility_data = visibility.select('div[data-testid^=wxData]')
 			print(visibility_label[0].text + ' -> ' + visibility_data[0].text)
-			moon_phase = other_details_list[7]
-			moon_phase_label = moon_phase.select('div[data-testid^=WeatherDetailsLabel]')
-			moon_phase_data = moon_phase.select('div[data-testid^=wxData]')
 			print(moon_phase_label[0].text + ' -> ' + moon_phase_data[0].text)
+
+
 
 
 if __name__ == "__main__":
