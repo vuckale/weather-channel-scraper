@@ -78,18 +78,21 @@ def iterate_details(details, index):
 		detail = details[index]
 		label = detail.select('div[data-testid^=WeatherDetailsLabel]')
 		data = detail.select('div[data-testid^=wxData]')
-		return label[0].text + ' -> ' + data[0].text
+		return [label[0].text, data[0].text]
 	elif index == -1:
 		# for scraping feels like section
 		feels_like = details.select('div[data-testid^=FeelsLikeSection]')[0]
 		label = feels_like.select('span[data-testid^=FeelsLikeLabel]')
 		data = feels_like.select('span[data-testid^=TemperatureValue]')
-		return label[0].text + ' -> ' + data[0].text
+		return [label[0].text, data[0].text]
 
 
 def main():
 	usage = "usage: %prog [options] arg1 arg2"
 	parser = OptionParser(usage=usage)
+	parser.add_option("-v", "--verbose",
+                  action="store_true", dest="verbose",
+                  help="print verbose output")
 	parser.add_option("-c", "--current",
                   action="store_true", dest="current",
                   help="print current weather temperature in set location")
@@ -181,47 +184,48 @@ def main():
 
 		if details_dict["--d-feels-like"]:
 			feels_like = iterate_details(details, -1)
-			print(feels_like)
+			print(feels_like[0] + ': ' + feels_like[1] if options.verbose else feels_like[1])
 
 		other_details_list = details.select('div[data-testid^=WeatherDetailsListItem]')
 
 		if details_dict["--d-high-low"]:
 			high_low = iterate_details(other_details_list, 0)
-			print(high_low)
+			print(high_low[0] + ': ' + high_low[1] if options.verbose else high_low[1])
 
 		if details_dict["--d-wind"]:
 			wind = iterate_details(other_details_list, 1)
-			print(wind)
+			print(wind[0] + ': ' + wind[1] if options.verbose else wind[1])
 
 		if details_dict["--d-humidity"]:
 			humidity = iterate_details(other_details_list, 2)
-			print(humidity)
+			print(humidity[0] + ': ' + humidity[1] if options.verbose else humidity[1])
 
 		if details_dict["--d-dew-point"]:
 			dew_point = iterate_details(other_details_list, 3)
-			print(dew_point)
+			print(dew_point[0] + ': ' + dew_point[1] if options.verbose else dew_point[1])
 
 		if details_dict["--d-pressure"]:
 			pressure = iterate_details(other_details_list, 4)
-			print(pressure)
+			print(pressure[0] + ': ' + pressure[1] if options.verbose else pressure[1])
 
 		if details_dict["--d-uw-index"]:
 			uw_index = iterate_details(other_details_list, 5)
-			print(uw_index)
+			print(uw_index[0] + ': ' + uw_index[1] if options.verbose else uw_index[1])
 
 		if details_dict["--d-visibility"]:
 			visibility = iterate_details(other_details_list, 6)
-			print(visibility)
+			print(visibility[0] + ': ' + visibility[1] if options.verbose else visibility[1])
 
 		if details_dict["--d-moon-phase"]:
 			moon_phase = iterate_details(other_details_list, 7)
-			print(moon_phase)
+			print(moon_phase[0] + ': ' + moon_phase[1] if options.verbose else moon_phase[1])
 
 		if options.details:
 			feels_like = iterate_details(details, -1)
-			print(feels_like)
+			print(feels_like[0] + ': ' + feels_like[1] if options.verbose else feels_like[1])
 			for i in range (0, len(other_details_list)):
-				print(iterate_details(other_details_list, i))
+				detail = iterate_details(other_details_list, i)
+				print(detail[0] + ': ' + detail[1] if options.verbose else detail[1])
 
 
 if __name__ == "__main__":
