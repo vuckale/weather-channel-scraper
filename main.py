@@ -56,7 +56,13 @@ def getIcon(weather_condition):
 details_dict = {
 	"--d-high-low" : False,
 	"--d-feels-like" : False,
-	"--d-wind" : False
+	"--d-wind" : False,
+	"--d-humidity" : False,
+	"--d-dew-point" : False,
+	"--d-pressure" : False,
+	"--d-uw-index" : False,
+	"--d-visibility" : False,
+	"--d-moon-phase" : False
 }
 
 
@@ -68,10 +74,18 @@ def check_options(option, opt_str, value, parser):
 
 
 def iterate_details(details, index):
-	detail = details[index]
-	label = detail.select('div[data-testid^=WeatherDetailsLabel]')
-	data = detail.select('div[data-testid^=wxData]')
-	return label[0].text + ' -> ' + data[0].text
+	if index >= 0:
+		detail = details[index]
+		label = detail.select('div[data-testid^=WeatherDetailsLabel]')
+		data = detail.select('div[data-testid^=wxData]')
+		return label[0].text + ' -> ' + data[0].text
+	elif index == -1:
+		# for scraping feels like section
+		feels_like = details.select('div[data-testid^=FeelsLikeSection]')[0]
+		label = feels_like.select('span[data-testid^=FeelsLikeLabel]')
+		data = feels_like.select('span[data-testid^=TemperatureValue]')
+		return label[0].text + ' -> ' + data[0].text
+
 
 def main():
 	usage = "usage: %prog [options] arg1 arg2"
@@ -97,6 +111,24 @@ def main():
 	parser.add_option("--d-wind",
                   action="callback", callback=check_options,
                   help="print wind speed for today")
+	parser.add_option("--d-humidity",
+                  action="callback", callback=check_options,
+                  help="print humidity speed for today")
+	parser.add_option("--d-dew-point",
+                  action="callback", callback=check_options,
+                  help="print dew-point speed for today")
+	parser.add_option("--d-pressure",
+                  action="callback", callback=check_options,
+                  help="print pressure speed for today")
+	parser.add_option("--d-uw-index",
+                  action="callback", callback=check_options,
+                  help="print uw-index speed for today")
+	parser.add_option("--d-visibility",
+                  action="callback", callback=check_options,
+                  help="print visibility speed for today")
+	parser.add_option("--d-moon-phase",
+                  action="callback", callback=check_options,
+                  help="print moon-phase speed for today")
 
 	(options, args) = parser.parse_args()
 
@@ -146,11 +178,10 @@ def main():
 			print('sunrise at: ' + str(sunrise_dateTime.hour) + ':' + str(sunrise_dateTime.minute) + ' | ' +'sunset at: ' + str(sunset_dateTime.hour) + ':' + str(sunset_dateTime.minute))
 
 		details = soup.select('section[data-testid^=TodaysDetailsModule]')[0]
-		feels_like = details.select('div[data-testid^=FeelsLikeSection]')[0]
-		feels_like_label = feels_like.select('span[data-testid^=FeelsLikeLabel]')[0].text
-		feels_like_temp = feels_like.select('span[data-testid^=TemperatureValue]')[0].text
+
 		if details_dict["--d-feels-like"]:
-			print(feels_like_label + ' -> ' + feels_like_temp)
+			feels_like = iterate_details(details, -1)
+			print(feels_like)
 
 		other_details_list = details.select('div[data-testid^=WeatherDetailsListItem]')
 
@@ -162,16 +193,33 @@ def main():
 			wind = iterate_details(other_details_list, 1)
 			print(wind)
 
-		humidity = iterate_details(other_details_list, 2)
-		dew_point = iterate_details(other_details_list, 3)
-		pressure = iterate_details(other_details_list, 4)
-		uv_index = iterate_details(other_details_list, 5)
-		visibility = iterate_details(other_details_list, 6)
-		moon_phase = iterate_details(other_details_list, 7)
+		if details_dict["--d-humidity"]:
+			humidity = iterate_details(other_details_list, 2)
+			print(humidity)
+
+		if details_dict["--d-dew-point"]:
+			dew_point = iterate_details(other_details_list, 3)
+			print(dew_point)
+
+		if details_dict["--d-pressure"]:
+			pressure = iterate_details(other_details_list, 4)
+			print(pressure)
+
+		if details_dict["--d-uw-index"]:
+			uw_index = iterate_details(other_details_list, 5)
+			print(uw_index)
+
+		if details_dict["--d-visibility"]:
+			visibility = iterate_details(other_details_list, 6)
+			print(visibility)
+
+		if details_dict["--d-moon-phase"]:
+			moon_phase = iterate_details(other_details_list, 7)
+			print(moon_phase)
 
 		if options.details:
-			print(feels_like_label + ' -> ' + feels_like_temp)
-
+			feels_like = iterate_details(details, -1)
+			print(feels_like)
 			for i in range (0, len(other_details_list)):
 				print(iterate_details(other_details_list, i))
 
