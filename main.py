@@ -8,7 +8,7 @@ from optparse import OptionParser, OptionValueError
 import optparse
 
 # global variables
-url=""
+url = ""
 current_dateTime = None
 sunset_dateTime = None
 sunrise_dateTime = None
@@ -23,6 +23,14 @@ def sunIsUp():
 
 
 def getIcon(weather_condition):
+	global current_dateTime, sunset_dateTime, sunrise_dateTime
+
+	sunset_sunrise = ""
+	if current_dateTime > sunset_dateTime.replace(minute=(sunset_dateTime.minute - 20)) and current_dateTime <= sunset_dateTime:
+		sunset_sunrise = "  "
+	elif current_dateTime > sunrise_dateTime.replace(minute=(sunrise_dateTime.minute - 20)) and current_dateTime <= sunrise_dateTime:
+		sunset_sunrise = "  "
+
 	options = {
 		'Sunny' : '',
 		'Mostly Sunny' : '',
@@ -41,7 +49,10 @@ def getIcon(weather_condition):
 		'Snow' : '',
 		'Windy':'' 
 	}
-	return options[weather_condition]
+
+	return options[weather_condition] + sunset_sunrise
+
+
 details_dict = {
 	"--d-high-low" : False,
 	"--d-feels-like" : False,
@@ -130,7 +141,7 @@ def main():
 		except OSError as e:
 			pass
 		if options.current:
-			print(getIcon(weather_condition) + ' ' + temperature + 'C')
+			print(getIcon(weather_condition) + " " + temperature + 'C')
 		if options.sunrise_sunset:
 			print('sunrise at: ' + str(sunrise_dateTime.hour) + ':' + str(sunrise_dateTime.minute) + ' | ' +'sunset at: ' + str(sunset_dateTime.hour) + ':' + str(sunset_dateTime.minute))
 
