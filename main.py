@@ -113,22 +113,22 @@ def main():
                   help="print wind speed for today")
 	parser.add_option("--d-humidity",
                   action="callback", callback=check_options,
-                  help="print humidity speed for today")
+                  help="print humidity for today")
 	parser.add_option("--d-dew-point",
                   action="callback", callback=check_options,
-                  help="print dew-point speed for today")
+                  help="print dew-point for today")
 	parser.add_option("--d-pressure",
                   action="callback", callback=check_options,
-                  help="print pressure speed for today")
+                  help="print pressure for today")
 	parser.add_option("--d-uw-index",
                   action="callback", callback=check_options,
-                  help="print uw-index speed for today")
+                  help="print uw-index for today")
 	parser.add_option("--d-visibility",
                   action="callback", callback=check_options,
-                  help="print visibility speed for today")
+                  help="print visibility range for today")
 	parser.add_option("--d-moon-phase",
                   action="callback", callback=check_options,
-                  help="print moon-phase speed for today")
+                  help="print moon-phase for today")
 
 	(options, args) = parser.parse_args()
 
