@@ -136,12 +136,12 @@ def main():
 
 		other_details_list = details.select('div[data-testid^=WeatherDetailsListItem]')
 
-		high_low = iterate_details(other_details_list, 0)
 		if details_dict["--d-high-low"]:
+			high_low = iterate_details(other_details_list, 0)
 			print(high_low)
 
-		wind = iterate_details(other_details_list, 1)
 		if details_dict["--d-wind"]:
+			wind = iterate_details(other_details_list, 1)
 			print(wind)
 
 		humidity = iterate_details(other_details_list, 2)
@@ -153,14 +153,9 @@ def main():
 
 		if options.details:
 			print(feels_like_label + ' -> ' + feels_like_temp)
-			print(high_low)
-			print(wind)
-			print(humidity)
-			print(dew_point)
-			print(pressure)
-			print(uv_index)
-			print(visibility)
-			print(moon_phase)
+
+			for i in range (0, len(other_details_list)):
+				print(iterate_details(other_details_list, i))
 
 
 if __name__ == "__main__":
