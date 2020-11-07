@@ -52,6 +52,7 @@ details_dict = {
 def check_options(option, opt_str, value, parser):
 	if parser.values.details:
 		raise OptionValueError('ERROR: either option -d, --details alone or multiple --d-* options can be passed')
+
 	details_dict[opt_str] = True
 
 
@@ -87,6 +88,12 @@ def main():
                   help="print wind speed for today")
 
 	(options, args) = parser.parse_args()
+
+	if options.details:
+		for key, value in details_dict.items():
+				if value:
+					print("ERROR: either option -d, --details alone or multiple --d-* options can be passed")
+					sys.exit()
 
 	count_None = 0
 	for key, value in options.__dict__.items():
