@@ -68,7 +68,8 @@ details_dict = {
 
 def check_options(option, opt_str, value, parser):
 	if parser.values.details:
-		raise OptionValueError('ERROR: either option -d, --details alone or multiple --d-* options can be passed')
+		print("ERROR: either option -d, --details alone or multiple --d-* options can be passed")
+		sys.exit()
 
 	details_dict[opt_str] = True
 
@@ -105,6 +106,9 @@ def main():
 	parser.add_option("-d", "--details",
                   action="store_true", dest="details",
                   help="print details for current weather")
+	parser.add_option("--one-line",
+                  action="store_true", dest="one_line",
+                  help="print everything on one line")
 	parser.add_option("--d-feels-like",
                   action="callback", callback=check_options,
                   help="print high/low for today")
@@ -152,6 +156,8 @@ def main():
 		parser.print_help()
 		sys.exit()
 
+	printing_style = ' ' if options.one_line else '\n'
+
 	global 	current_dateTime, sunset_dateTime, sunrise_dateTime, url, soup
 	if not url and (not options.url):
 			print('url not specified: visit https://weather.com/en-GB/, enter your destination and pate url in \'url\' variable')
@@ -176,56 +182,56 @@ def main():
 		except OSError as e:
 			pass
 		if options.current:
-			print(getIcon(weather_condition) + " " + temperature + 'C')
+			print(getIcon(weather_condition) + " " + temperature + 'C', end = printing_style)
 		if options.sunrise_sunset:
-			print('sunrise at: ' + str(sunrise_dateTime.hour) + ':' + str(sunrise_dateTime.minute) + ' | ' +'sunset at: ' + str(sunset_dateTime.hour) + ':' + str(sunset_dateTime.minute))
+			print('sunrise at: ' + str(sunrise_dateTime.hour) + ':' + str(sunrise_dateTime.minute) + ' | ' +'sunset at: ' + str(sunset_dateTime.hour) + ':' + str(sunset_dateTime.minute), end = printing_style)
 
 		details = soup.select('section[data-testid^=TodaysDetailsModule]')[0]
 
 		if details_dict["--d-feels-like"]:
 			feels_like = iterate_details(details, -1)
-			print(feels_like[0] + ': ' + feels_like[1] if options.verbose else feels_like[1])
+			print(feels_like[0] + ': ' + feels_like[1] if options.verbose else feels_like[1], end = printing_style)
 
 		other_details_list = details.select('div[data-testid^=WeatherDetailsListItem]')
 
 		if details_dict["--d-high-low"]:
 			high_low = iterate_details(other_details_list, 0)
-			print(high_low[0] + ': ' + high_low[1] if options.verbose else high_low[1])
+			print(high_low[0] + ': ' + high_low[1] if options.verbose else high_low[1], end = printing_style)
 
 		if details_dict["--d-wind"]:
 			wind = iterate_details(other_details_list, 1)
-			print(wind[0] + ': ' + wind[1] if options.verbose else wind[1])
+			print(wind[0] + ': ' + wind[1] if options.verbose else wind[1], end = printing_style)
 
 		if details_dict["--d-humidity"]:
 			humidity = iterate_details(other_details_list, 2)
-			print(humidity[0] + ': ' + humidity[1] if options.verbose else humidity[1])
+			print(humidity[0] + ': ' + humidity[1] if options.verbose else humidity[1], end = printing_style)
 
 		if details_dict["--d-dew-point"]:
 			dew_point = iterate_details(other_details_list, 3)
-			print(dew_point[0] + ': ' + dew_point[1] if options.verbose else dew_point[1])
+			print(dew_point[0] + ': ' + dew_point[1] if options.verbose else dew_point[1], end = printing_style)
 
 		if details_dict["--d-pressure"]:
 			pressure = iterate_details(other_details_list, 4)
-			print(pressure[0] + ': ' + pressure[1] if options.verbose else pressure[1])
+			print(pressure[0] + ': ' + pressure[1] if options.verbose else pressure[1], end = printing_style)
 
 		if details_dict["--d-uw-index"]:
 			uw_index = iterate_details(other_details_list, 5)
-			print(uw_index[0] + ': ' + uw_index[1] if options.verbose else uw_index[1])
+			print(uw_index[0] + ': ' + uw_index[1] if options.verbose else uw_index[1], end = printing_style)
 
 		if details_dict["--d-visibility"]:
 			visibility = iterate_details(other_details_list, 6)
-			print(visibility[0] + ': ' + visibility[1] if options.verbose else visibility[1])
+			print(visibility[0] + ': ' + visibility[1] if options.verbose else visibility[1], end = printing_style)
 
 		if details_dict["--d-moon-phase"]:
 			moon_phase = iterate_details(other_details_list, 7)
-			print(moon_phase[0] + ': ' + moon_phase[1] if options.verbose else moon_phase[1])
+			print(moon_phase[0] + ': ' + moon_phase[1] if options.verbose else moon_phase[1], end = printing_style)
 
 		if options.details:
 			feels_like = iterate_details(details, -1)
-			print(feels_like[0] + ': ' + feels_like[1] if options.verbose else feels_like[1])
+			print(feels_like[0] + ': ' + feels_like[1] if options.verbose else feels_like[1], end = printing_style)
 			for i in range (0, len(other_details_list)):
 				detail = iterate_details(other_details_list, i)
-				print(detail[0] + ': ' + detail[1] if options.verbose else detail[1])
+				print(detail[0] + ': ' + detail[1] if options.verbose else detail[1], end = printing_style)
 
 
 if __name__ == "__main__":
