@@ -24,11 +24,11 @@ def sunIsUp():
 
 def getIcon(weather_condition):
 	global current_dateTime, sunset_dateTime, sunrise_dateTime
-
+	timedelta = datetime.timedelta(minutes=20)
 	sunset_sunrise = ""
-	if current_dateTime > sunset_dateTime.replace(minute=(sunset_dateTime.minute - 20)) and current_dateTime <= sunset_dateTime:
+	if current_dateTime > sunset_dateTime - timedelta and current_dateTime <= sunset_dateTime:
 		sunset_sunrise = "  "
-	elif current_dateTime > sunrise_dateTime.replace(minute=(sunrise_dateTime.minute - 20)) and current_dateTime <= sunrise_dateTime:
+	elif current_dateTime > sunrise_dateTime - timedelta and current_dateTime <= sunrise_dateTime:
 		sunset_sunrise = "  "
 
 	options = {
@@ -70,7 +70,6 @@ def check_options(option, opt_str, value, parser):
 	if parser.values.details:
 		print("ERROR: either option -d, --details alone or multiple --d-* options can be passed")
 		sys.exit()
-
 	details_dict[opt_str] = True
 
 
@@ -89,6 +88,7 @@ def iterate_details(details, index):
 
 
 def main():
+	output = ""
 	usage = "usage: %prog [options] arg1 arg2"
 	parser = OptionParser(usage=usage)
 	parser.add_option("-v", "--verbose",
@@ -106,8 +106,9 @@ def main():
 	parser.add_option("-d", "--details",
                   action="store_true", dest="details",
                   help="print details for current weather")
-	parser.add_option("--one-line",
-                  action="store_true", dest="one_line",
+	parser.add_option("--one-line", action="store", dest="one_line",
+                  help="print everything on one line")
+	parser.add_option("--delim", dest="delim",
                   help="print everything on one line")
 	parser.add_option("--d-feels-like",
                   action="callback", callback=check_options,
@@ -156,7 +157,13 @@ def main():
 		parser.print_help()
 		sys.exit()
 
-	printing_style = ' ' if options.one_line else '\n'
+	if options.one_line:
+		if len(options.one_line) > 1:
+			print("ERROR: " + options.one_line + " is invalid --one-line argument, it is a character that will be used as a delimiter. It can't contain more than 1 character.")
+			print("Maybe you forgot to put it and placed another option instead?")
+			sys.exit()
+
+	printing_style = ' ' + str(options.one_line) + ' ' if options.one_line else '\n'
 
 	global 	current_dateTime, sunset_dateTime, sunrise_dateTime, url, soup
 	if not url and (not options.url):
@@ -182,56 +189,61 @@ def main():
 		except OSError as e:
 			pass
 		if options.current:
-			print(getIcon(weather_condition) + " " + temperature + 'C', end = printing_style)
+			output += getIcon(weather_condition) + " " + temperature + 'C' + printing_style
 		if options.sunrise_sunset:
-			print('sunrise at: ' + str(sunrise_dateTime.hour) + ':' + str(sunrise_dateTime.minute) + ' | ' +'sunset at: ' + str(sunset_dateTime.hour) + ':' + str(sunset_dateTime.minute), end = printing_style)
+			output += 'sunrise at: ' + str(sunrise_dateTime.hour) + ':' + str(sunrise_dateTime.minute) + ' | ' +'sunset at: ' + str(sunset_dateTime.hour) + ':' + str(sunset_dateTime.minute) + printing_style
 
 		details = soup.select('section[data-testid^=TodaysDetailsModule]')[0]
 
 		if details_dict["--d-feels-like"]:
 			feels_like = iterate_details(details, -1)
-			print(feels_like[0] + ': ' + feels_like[1] if options.verbose else feels_like[1], end = printing_style)
+			output += feels_like[0] + ': ' + feels_like[1] + printing_style if options.verbose else feels_like[1] + printing_style
 
 		other_details_list = details.select('div[data-testid^=WeatherDetailsListItem]')
 
 		if details_dict["--d-high-low"]:
 			high_low = iterate_details(other_details_list, 0)
-			print(high_low[0] + ': ' + high_low[1] if options.verbose else high_low[1], end = printing_style)
+			output += high_low[0] + ': ' + high_low[1] + printing_style if options.verbose else high_low[1] + printing_style
 
 		if details_dict["--d-wind"]:
 			wind = iterate_details(other_details_list, 1)
-			print(wind[0] + ': ' + wind[1] if options.verbose else wind[1], end = printing_style)
+			output += wind[0] + ': ' + wind[1] + printing_style if options.verbose else wind[1] + printing_style
 
 		if details_dict["--d-humidity"]:
 			humidity = iterate_details(other_details_list, 2)
-			print(humidity[0] + ': ' + humidity[1] if options.verbose else humidity[1], end = printing_style)
+			output += humidity[0] + ': ' + humidity[1] + printing_style if options.verbose else humidity[1] + printing_style
 
 		if details_dict["--d-dew-point"]:
 			dew_point = iterate_details(other_details_list, 3)
-			print(dew_point[0] + ': ' + dew_point[1] if options.verbose else dew_point[1], end = printing_style)
+			output += dew_point[0] + ': ' + dew_point[1] + printing_style if options.verbose else dew_point[1] + printing_style
 
 		if details_dict["--d-pressure"]:
 			pressure = iterate_details(other_details_list, 4)
-			print(pressure[0] + ': ' + pressure[1] if options.verbose else pressure[1], end = printing_style)
+			output += pressure[0] + ': ' + pressure[1] + printing_style if options.verbose else pressure[1] + printing_style
 
 		if details_dict["--d-uw-index"]:
 			uw_index = iterate_details(other_details_list, 5)
-			print(uw_index[0] + ': ' + uw_index[1] if options.verbose else uw_index[1], end = printing_style)
+			output += uw_index[0] + ': ' + uw_index[1] + printing_style if options.verbose else uw_index[1] + printing_style
 
 		if details_dict["--d-visibility"]:
 			visibility = iterate_details(other_details_list, 6)
-			print(visibility[0] + ': ' + visibility[1] if options.verbose else visibility[1], end = printing_style)
+			output += visibility[0] + ': ' + visibility[1] + printing_style if options.verbose else visibility[1] + printing_style
 
 		if details_dict["--d-moon-phase"]:
 			moon_phase = iterate_details(other_details_list, 7)
-			print(moon_phase[0] + ': ' + moon_phase[1] if options.verbose else moon_phase[1], end = printing_style)
+			output += moon_phase[0] + ': ' + moon_phase[1] + printing_style if options.verbose else moon_phase[1] + printing_style
 
 		if options.details:
 			feels_like = iterate_details(details, -1)
-			print(feels_like[0] + ': ' + feels_like[1] if options.verbose else feels_like[1], end = printing_style)
+			output += feels_like[0] + ': ' + feels_like[1] + printing_style if options.verbose else feels_like[1] + printing_style
 			for i in range (0, len(other_details_list)):
 				detail = iterate_details(other_details_list, i)
-				print(detail[0] + ': ' + detail[1] if options.verbose else detail[1], end = printing_style)
+				output += detail[0] + ': ' + detail[1] + printing_style if options.verbose else detail[1] + printing_style
+
+		if options.one_line:
+			print(output[:-3])
+		else:
+			print(output[:-1])
 
 
 if __name__ == "__main__":
