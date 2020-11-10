@@ -189,17 +189,19 @@ def main():
 		except OSError as e:
 			pass
 		if options.current:
-			output += getIcon(weather_condition) + " " + temperature + 'C' + printing_style
+			output += 'weather condition & temperature: ' + getIcon(weather_condition) + " " + temperature + 'C' + printing_style if options.verbose else getIcon(weather_condition) + " " + temperature + 'C' + printing_style
 		if options.sunrise_sunset:
-			output += 'sunrise at: ' + str(sunrise_dateTime.hour) + ':' + str(sunrise_dateTime.minute) + ' | ' +'sunset at: ' + str(sunset_dateTime.hour) + ':' + str(sunset_dateTime.minute) + printing_style
+			output += 'sunrise/sunset: ' + str(sunrise_dateTime.hour) + ':' + str(sunrise_dateTime.minute) + '/' + str(sunset_dateTime.hour) + ':'\
+				 + str(sunset_dateTime.minute) + printing_style if options.verbose else str(sunrise_dateTime.hour)\
+				 + ':' + str(sunrise_dateTime.minute) + '/' + str(sunset_dateTime.hour) + ':' + str(sunset_dateTime.minute) + printing_style
 
-		details = soup.select('section[data-testid^=TodaysDetailsModule]')[0]
+		if any(details_dict.values()):
+			details = soup.select('section[data-testid^=TodaysDetailsModule]')[0]
+			other_details_list = details.select('div[data-testid^=WeatherDetailsListItem]')
 
 		if details_dict["--d-feels-like"]:
 			feels_like = iterate_details(details, -1)
 			output += feels_like[0] + ': ' + feels_like[1] + printing_style if options.verbose else feels_like[1] + printing_style
-
-		other_details_list = details.select('div[data-testid^=WeatherDetailsListItem]')
 
 		if details_dict["--d-high-low"]:
 			high_low = iterate_details(other_details_list, 0)
