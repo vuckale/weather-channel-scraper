@@ -54,8 +54,9 @@ def getIcon(weather_condition):
 
 
 details_dict = {
-	"--d-high-low" : False,
 	"--d-feels-like" : False,
+	"--d-sunrise-sunset" : False,
+	"--d-high-low" : False,
 	"--d-wind" : False,
 	"--d-humidity" : False,
 	"--d-dew-point" : False,
@@ -85,11 +86,16 @@ def iterate_details(details, index):
 		label = feels_like.select('span[data-testid^=FeelsLikeLabel]')
 		data = feels_like.select('span[data-testid^=TemperatureValue]')
 		return [label[0].text, data[0].text]
+	elif index == -2:
+		sunrise_sunset = details.select('div[data-testid^=sunriseSunsetContainer]')[0]
+		sunrise_data = sunrise_sunset.select('div[data-testid^=SunriseValue]')[0].p.text
+		sunset_data = sunrise_sunset.select('div[data-testid^=SunsetValue]')[0].p.text
+		return sunrise_data + '/' + sunset_data
 
 
 def main():
 	output = ""
-	usage = "usage: %prog [options] arg1 arg2"
+	usage = "usage: %prog [options]"
 	parser = OptionParser(usage=usage)
 	parser.add_option("-v", "--verbose",
                   action="store_true", dest="verbose",
@@ -97,22 +103,20 @@ def main():
 	parser.add_option("-c", "--current",
                   action="store_true", dest="current",
                   help="print current weather temperature in set location")
-	parser.add_option("-s", "--sunrise-sunset",
-                  action="store_true", dest="sunrise_sunset",
-                  help="print datetime for sunrise and sunset in set location")
 	parser.add_option("-u", "--url",
                   action="store", dest="url",
                   help="use this url to fetch weather data")
+	parser.add_option("--one-line", action="store", dest="one_line",
+                  help="print everything on one line (put delimiter inside of \"quotes\" in place of ONE_LINE)")
 	parser.add_option("-d", "--details",
                   action="store_true", dest="details",
                   help="print details for current weather")
-	parser.add_option("--one-line", action="store", dest="one_line",
-                  help="print everything on one line")
-	parser.add_option("--delim", dest="delim",
-                  help="print everything on one line")
 	parser.add_option("--d-feels-like",
                   action="callback", callback=check_options,
                   help="print high/low for today")
+	parser.add_option("--d-sunrise-sunset",
+                  action="callback", callback=check_options,
+                  help="print sunrise/sunset time for today")
 	parser.add_option("--d-high-low",
                   action="callback", callback=check_options,
                   help="print high/low for today")
@@ -153,7 +157,7 @@ def main():
 		else:
 			count_None += 1
 
-	if count_None == len(options.__dict__.items()) and not details_dict:
+	if count_None == len(options.__dict__.items()) and not any(details_dict.values()):
 		parser.print_help()
 		sys.exit()
 
@@ -162,6 +166,11 @@ def main():
 			print("ERROR: " + options.one_line + " is invalid --one-line argument, it is a character that will be used as a delimiter. It can't contain more than 1 character.")
 			print("Maybe you forgot to put it and placed another option instead?")
 			sys.exit()
+
+
+	if options.one_line and count_None == len(options.__dict__.items()) - 1:
+		print("ERROR: --one-line option alone doesn't have anything to print")
+		sys.exit()
 
 	printing_style = ' ' + str(options.one_line) + ' ' if options.one_line else '\n'
 
@@ -175,6 +184,8 @@ def main():
 			else:
 				html_doc = requests.get(options.url).text
 			soup = BeautifulSoup(html_doc, 'html.parser')
+
+			# converting sunrise/sunset into datetime
 			sunrise_sunset = soup.find("div", {"class" : "SunriseSunset--datesContainer--3YG_Q"})
 			sunrise = sunrise_sunset.find("div" , {"data-testid" : "SunriseValue"}).p.string
 			sunset = sunrise_sunset.find("div" , {"data-testid" : "SunsetValue"}).p.string
@@ -182,7 +193,9 @@ def main():
 			sunrise_dateTime = (datetime.datetime.now()).replace(hour=int(sunrise_split[0]), minute=int(sunrise_split[1]))
 			sunset_split = sunset.split(':')
 			sunset_dateTime = (datetime.datetime.now()).replace(hour=int(sunset_split[0]), minute=(int(sunset_split[1])))
+
 			current_dateTime = datetime.datetime.now()
+
 			currentWeather = soup.find("div", { "class" : "CurrentConditions--primary--3xWnK" })
 			temperature = currentWeather.span.string
 			weather_condition = currentWeather.div.string
@@ -190,18 +203,18 @@ def main():
 			pass
 		if options.current:
 			output += 'weather condition & temperature: ' + getIcon(weather_condition) + " " + temperature + 'C' + printing_style if options.verbose else getIcon(weather_condition) + " " + temperature + 'C' + printing_style
-		if options.sunrise_sunset:
-			output += 'sunrise/sunset: ' + str(sunrise_dateTime.hour) + ':' + str(sunrise_dateTime.minute) + '/' + str(sunset_dateTime.hour) + ':'\
-				 + str(sunset_dateTime.minute) + printing_style if options.verbose else str(sunrise_dateTime.hour)\
-				 + ':' + str(sunrise_dateTime.minute) + '/' + str(sunset_dateTime.hour) + ':' + str(sunset_dateTime.minute) + printing_style
 
-		if any(details_dict.values()):
+		if any(details_dict.values()) or options.details:
 			details = soup.select('section[data-testid^=TodaysDetailsModule]')[0]
 			other_details_list = details.select('div[data-testid^=WeatherDetailsListItem]')
 
 		if details_dict["--d-feels-like"]:
 			feels_like = iterate_details(details, -1)
 			output += feels_like[0] + ': ' + feels_like[1] + printing_style if options.verbose else feels_like[1] + printing_style
+
+		if details_dict["--d-sunrise-sunset"]:
+			sunrise_sunset = iterate_details(details, -2)
+			output += 'sunrise/sunset: ' + sunrise_sunset+ printing_style if options.verbose else sunrise_sunset + printing_style
 
 		if details_dict["--d-high-low"]:
 			high_low = iterate_details(other_details_list, 0)
@@ -238,6 +251,8 @@ def main():
 		if options.details:
 			feels_like = iterate_details(details, -1)
 			output += feels_like[0] + ': ' + feels_like[1] + printing_style if options.verbose else feels_like[1] + printing_style
+			sunrise_sunset = iterate_details(details, -2)
+			output += 'sunrise/sunset: ' + sunrise_sunset+ printing_style if options.verbose else sunrise_sunset + printing_style
 			for i in range (0, len(other_details_list)):
 				detail = iterate_details(other_details_list, i)
 				output += detail[0] + ': ' + detail[1] + printing_style if options.verbose else detail[1] + printing_style
