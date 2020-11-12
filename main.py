@@ -13,6 +13,7 @@ current_dateTime = None
 sunset_dateTime = None
 sunrise_dateTime = None
 soup = None
+options = None
 
 def sunIsUp():
 	global current_dateTime, sunset_dateTime, sunrise_dateTime
@@ -31,7 +32,7 @@ def getIcon(weather_condition):
 	elif current_dateTime > sunrise_dateTime - timedelta and current_dateTime <= sunrise_dateTime:
 		sunset_sunrise = "  "
 
-	options = {
+	conditions = {
 		'Sunny' : '',
 		'Mostly Sunny' : '',
 		'Partly Sunny' : '',
@@ -43,14 +44,18 @@ def getIcon(weather_condition):
 		'Fair' : '' if sunIsUp() else '󰼱',
 		'Clear' : '' if sunIsUp() else '󰖔',
 		'Fog' : '󰖑',
-		'Showers' : '',
+		'Rain Shower' : '',
 		'T-Storms' : '',
 		'Rain' : '',
 		'Snow' : '',
 		'Windy':'' 
 	}
 
-	return options[weather_condition] + sunset_sunrise
+	if weather_condition in conditions:
+		return weather_condition + ' ' + conditions[weather_condition] + sunset_sunrise if options.verbose\
+			 else conditions[weather_condition] + sunset_sunrise
+	else:
+		return weather_condition + ' ' + sunset_sunrise
 
 
 details_dict = {
@@ -94,6 +99,7 @@ def iterate_details(details, index):
 
 
 def main():
+	global options
 	output = ""
 	usage = "usage: %prog [options]"
 	parser = OptionParser(usage=usage)
@@ -202,7 +208,7 @@ def main():
 		except OSError as e:
 			pass
 		if options.current:
-			output += 'weather condition & temperature: ' + getIcon(weather_condition) + " " + temperature + 'C' + printing_style if options.verbose else getIcon(weather_condition) + " " + temperature + 'C' + printing_style
+			output += 'Current: ' + getIcon(weather_condition) + " " + temperature + printing_style if options.verbose else getIcon(weather_condition) + " " + temperature + 'C' + printing_style
 
 		if any(details_dict.values()) or options.details:
 			details = soup.select('section[data-testid^=TodaysDetailsModule]')[0]
