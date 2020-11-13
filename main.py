@@ -92,10 +92,28 @@ def iterate_details(details, index):
 		data = feels_like.select('span[data-testid^=TemperatureValue]')
 		return [label[0].text, data[0].text]
 	elif index == -2:
+		# for scraping sunset/sunrise
 		sunrise_sunset = details.select('div[data-testid^=sunriseSunsetContainer]')[0]
 		sunrise_data = sunrise_sunset.select('div[data-testid^=SunriseValue]')[0].p.text
 		sunset_data = sunrise_sunset.select('div[data-testid^=SunsetValue]')[0].p.text
 		return sunrise_data + '/' + sunset_data
+
+
+def draw_sun_position():
+	global current_dateTime, sunset_dateTime, sunrise_dateTime
+	if sunIsUp():
+		diff = sunset_dateTime - sunrise_dateTime
+		step = diff.seconds/10
+		current_diff = sunset_dateTime - current_dateTime
+		current_diff_step = current_diff/step
+		sun_pos = abs(round(current_diff_step.seconds) - 10)
+		output = ""
+		for i in range(0, 11):
+			if i == sun_pos:
+				output += ''
+			else:
+				output += '-'
+		return output
 
 
 def main():
@@ -147,6 +165,9 @@ def main():
 	parser.add_option("--d-moon-phase",
                   action="callback", callback=check_options,
                   help="print moon-phase for today")
+	parser.add_option("--sun-position",
+                  action="store_true", dest="sun_position",
+                  help="print moon-phase for today")
 
 	(options, args) = parser.parse_args()
 
@@ -172,7 +193,6 @@ def main():
 			print("ERROR: " + options.one_line + " is invalid --one-line argument, it is a character that will be used as a delimiter. It can't contain more than 1 character.")
 			print("Maybe you forgot to put it and placed another option instead?")
 			sys.exit()
-
 
 	if options.one_line and count_None == len(options.__dict__.items()) - 1:
 		print("ERROR: --one-line option alone doesn't have anything to print")
@@ -262,6 +282,9 @@ def main():
 			for i in range (0, len(other_details_list)):
 				detail = iterate_details(other_details_list, i)
 				output += detail[0] + ': ' + detail[1] + printing_style if options.verbose else detail[1] + printing_style
+
+		if options.sun_position and sunIsUp():
+			output += draw_sun_position() + printing_style
 
 		if options.one_line:
 			print(output[:-3])
