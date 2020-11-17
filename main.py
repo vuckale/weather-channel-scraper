@@ -36,11 +36,11 @@ def getIcon(weather_condition):
 		'Sunny' : '',
 		'Mostly Sunny' : '',
 		'Partly Sunny' : '',
-		
+
 		'Cloudy' : '',
 		'Partly Cloudy' : '' if sunIsUp() else '󰼱',
 		'Mostly Cloudy' : '',
-		
+
 		'Fair' : '' if sunIsUp() else '󰼱',
 		'Clear' : '' if sunIsUp() else '󰖔',
 		'Fog' : '󰖑',
@@ -48,11 +48,11 @@ def getIcon(weather_condition):
 		'T-Storms' : '',
 		'Rain' : '',
 		'Snow' : '',
-		'Windy':'' 
+		'Windy':''
 	}
 
 	if weather_condition in conditions:
-		return weather_condition + ' ' + conditions[weather_condition] + sunset_sunrise if options.verbose\
+		return weather_condition + ' ' + sunset_sunrise if options.verbose\
 			 else conditions[weather_condition] + sunset_sunrise
 	else:
 		return weather_condition + ' ' + sunset_sunrise
@@ -69,6 +69,20 @@ details_dict = {
 	"--d-uw-index" : False,
 	"--d-visibility" : False,
 	"--d-moon-phase" : False
+}
+
+icons = {
+	"--current" : ' ',
+	"--d-feels-like" : '󰙍 ',
+	"--d-sunrise-sunset" : '󰖜󰖛 ',
+	"--d-high-low" : ' ',
+	"--d-wind" : ' ',
+	"--d-humidity" : ' ',
+	"--d-dew-point" : ' ',
+	"--d-pressure" : ' ',
+	"--d-uw-index" : '󰖙 ',
+	"--d-visibility" : '󰈈 ',
+	"--d-moon-phase" : '󰽥 '
 }
 
 
@@ -225,72 +239,73 @@ def main():
 			currentWeather = soup.find("div", { "class" : "CurrentConditions--primary--3xWnK" })
 			temperature = currentWeather.span.string
 			weather_condition = currentWeather.div.string
-		except OSError as e:
-			pass
-		if options.current:
-			output += 'Current: ' + getIcon(weather_condition) + " " + temperature + printing_style if options.verbose else getIcon(weather_condition) + " " + temperature + 'C' + printing_style
 
-		if any(details_dict.values()) or options.details:
-			details = soup.select('section[data-testid^=TodaysDetailsModule]')[0]
-			other_details_list = details.select('div[data-testid^=WeatherDetailsListItem]')
+			if options.current:
+				output +=  'Current: ' + getIcon(weather_condition) + temperature + printing_style if options.verbose else ' ' + getIcon(weather_condition) + " " + temperature + 'C' + printing_style
 
-		if details_dict["--d-feels-like"]:
-			feels_like = iterate_details(details, -1)
-			output += feels_like[0] + ': ' + feels_like[1] + printing_style if options.verbose else feels_like[1] + printing_style
+			if any(details_dict.values()) or options.details:
+				details = soup.select('section[data-testid^=TodaysDetailsModule]')[0]
+				other_details_list = details.select('div[data-testid^=WeatherDetailsListItem]')
 
-		if details_dict["--d-sunrise-sunset"]:
-			sunrise_sunset = iterate_details(details, -2)
-			output += 'sunrise/sunset: ' + sunrise_sunset+ printing_style if options.verbose else sunrise_sunset + printing_style
+			if details_dict["--d-feels-like"]:
+				feels_like = iterate_details(details, -1)
+				output += feels_like[0] + ': ' + feels_like[1] + printing_style if options.verbose else icons['--d-feels-like'] + feels_like[1] + printing_style
 
-		if details_dict["--d-high-low"]:
-			high_low = iterate_details(other_details_list, 0)
-			output += high_low[0] + ': ' + high_low[1] + printing_style if options.verbose else high_low[1] + printing_style
+			if details_dict["--d-sunrise-sunset"]:
+				sunrise_sunset = iterate_details(details, -2)
+				output += 'sunrise/sunset: ' + sunrise_sunset+ printing_style if options.verbose else icons['--d-sunrise-sunset'] + sunrise_sunset + printing_style
 
-		if details_dict["--d-wind"]:
-			wind = iterate_details(other_details_list, 1)
-			output += wind[0] + ': ' + wind[1] + printing_style if options.verbose else wind[1] + printing_style
+			if details_dict["--d-high-low"]:
+				high_low = iterate_details(other_details_list, 0)
+				output += high_low[0] + ': ' + high_low[1] + printing_style if options.verbose else icons['--d-high-low'] + high_low[1] + printing_style
 
-		if details_dict["--d-humidity"]:
-			humidity = iterate_details(other_details_list, 2)
-			output += humidity[0] + ': ' + humidity[1] + printing_style if options.verbose else humidity[1] + printing_style
+			if details_dict["--d-wind"]:
+				wind = iterate_details(other_details_list, 1)
+				output += wind[0] + ': ' + wind[1] + printing_style if options.verbose else icons['--d-wind'] +  wind[1] + printing_style
 
-		if details_dict["--d-dew-point"]:
-			dew_point = iterate_details(other_details_list, 3)
-			output += dew_point[0] + ': ' + dew_point[1] + printing_style if options.verbose else dew_point[1] + printing_style
+			if details_dict["--d-humidity"]:
+				humidity = iterate_details(other_details_list, 2)
+				output += humidity[0] + ': ' + humidity[1] + printing_style if options.verbose else icons['--d-humidity'] + humidity[1] + printing_style
 
-		if details_dict["--d-pressure"]:
-			pressure = iterate_details(other_details_list, 4)
-			output += pressure[0] + ': ' + pressure[1] + printing_style if options.verbose else pressure[1] + printing_style
+			if details_dict["--d-dew-point"]:
+				dew_point = iterate_details(other_details_list, 3)
+				output += dew_point[0] + ': ' + dew_point[1] + printing_style if options.verbose else icons['--d-dew-point'] + dew_point[1] + printing_style
 
-		if details_dict["--d-uw-index"]:
-			uw_index = iterate_details(other_details_list, 5)
-			output += uw_index[0] + ': ' + uw_index[1] + printing_style if options.verbose else uw_index[1] + printing_style
+			if details_dict["--d-pressure"]:
+				pressure = iterate_details(other_details_list, 4)
+				output += pressure[0] + ': ' + pressure[1] + printing_style if options.verbose else icons['--d-pressure'] + pressure[1] + printing_style
 
-		if details_dict["--d-visibility"]:
-			visibility = iterate_details(other_details_list, 6)
-			output += visibility[0] + ': ' + visibility[1] + printing_style if options.verbose else visibility[1] + printing_style
+			if details_dict["--d-uw-index"]:
+				uw_index = iterate_details(other_details_list, 5)
+				output += uw_index[0] + ': ' + uw_index[1] + printing_style if options.verbose else icons['--d-uw-index'] + uw_index[1] + printing_style
 
-		if details_dict["--d-moon-phase"]:
-			moon_phase = iterate_details(other_details_list, 7)
-			output += moon_phase[0] + ': ' + moon_phase[1] + printing_style if options.verbose else moon_phase[1] + printing_style
+			if details_dict["--d-visibility"]:
+				visibility = iterate_details(other_details_list, 6)
+				output += visibility[0] + ': ' + visibility[1] + printing_style if options.verbose else icons['--d-visibility'] + visibility[1] + printing_style
 
-		if options.details:
-			feels_like = iterate_details(details, -1)
-			output += feels_like[0] + ': ' + feels_like[1] + printing_style if options.verbose else feels_like[1] + printing_style
-			sunrise_sunset = iterate_details(details, -2)
-			output += 'sunrise/sunset: ' + sunrise_sunset+ printing_style if options.verbose else sunrise_sunset + printing_style
-			for i in range (0, len(other_details_list)):
-				detail = iterate_details(other_details_list, i)
-				output += detail[0] + ': ' + detail[1] + printing_style if options.verbose else detail[1] + printing_style
+			if details_dict["--d-moon-phase"]:
+				moon_phase = iterate_details(other_details_list, 7)
+				output += moon_phase[0] + ': ' + moon_phase[1] + printing_style if options.verbose else icons['--d-moon-phase'] + moon_phase[1] + printing_style
 
-		if options.sun_position and sunIsUp():
-			output += draw_sun_position() + printing_style
+			if options.details:
+				feels_like = iterate_details(details, -1)
+				output += feels_like[0] + ': ' + feels_like[1] + printing_style if options.verbose else icons['--d-feels-like'] + feels_like[1] + printing_style
+				sunrise_sunset = iterate_details(details, -2)
+				output += 'sunrise/sunset: ' + sunrise_sunset+ printing_style if options.verbose else icons['--d-sunrise-sunset'] + sunrise_sunset + printing_style
+				icons_list = list(icons.values())
+				for i in range (0, len(other_details_list)):
+					detail = iterate_details(other_details_list, i)
+					output += detail[0] + ': ' + detail[1] + printing_style if options.verbose else icons_list[i + 3] + detail[1] + printing_style
 
-		if options.one_line:
-			print(output[:-3])
-		else:
-			print(output[:-1])
+			if options.sun_position and sunIsUp():
+				output += draw_sun_position() + printing_style
 
+			if options.one_line:
+				print(output[:-3])
+			else:
+				print(output[:-1])
+		except Exception as e:
+			print("X")
 
 if __name__ == "__main__":
     main()
