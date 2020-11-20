@@ -45,6 +45,7 @@ def getIcon(weather_condition):
 		'Clear' : '' if sunIsUp() else '󰖔',
 		'Fog' : '󰖑',
 		'Rain Shower' : '',
+		'Showers in the Vicinity' : '',
 		'T-Storms' : '',
 		'Rain' : '',
 		'Snow' : '',
@@ -182,6 +183,9 @@ def main():
 	parser.add_option("--sun-position",
                   action="store_true", dest="sun_position",
                   help="print moon-phase for today")
+	parser.add_option("--location",
+                  action="store_true", dest="location",
+                  help="print moon-phase for today")
 
 	(options, args) = parser.parse_args()
 
@@ -225,24 +229,25 @@ def main():
 				html_doc = requests.get(options.url).text
 			soup = BeautifulSoup(html_doc, 'html.parser')
 
-			# converting sunrise/sunset into datetime
-			sunrise_sunset = soup.find("div", {"class" : "SunriseSunset--datesContainer--3YG_Q"})
-			sunrise = sunrise_sunset.find("div" , {"data-testid" : "SunriseValue"}).p.string
-			sunset = sunrise_sunset.find("div" , {"data-testid" : "SunsetValue"}).p.string
-			sunrise_split = sunrise.split(':')
-			sunrise_dateTime = (datetime.datetime.now()).replace(hour=int(sunrise_split[0]), minute=int(sunrise_split[1]))
-			sunset_split = sunset.split(':')
-			sunset_dateTime = (datetime.datetime.now()).replace(hour=int(sunset_split[0]), minute=(int(sunset_split[1])))
-
-			current_dateTime = datetime.datetime.now()
-
-			currentWeather = soup.find("div", { "class" : "CurrentConditions--primary--3xWnK" })
-			temperature = currentWeather.span.string
-			weather_condition = currentWeather.div.string
-
+			if options.current or options.location:
+				current_section = soup.select('div[id^=WxuCurrentConditions-main-b3094163-ef75-4558-8d9a-e35e6b9b1034]')[0]
 			if options.current:
+				# converting sunrise/sunset into datetime
+				sunrise_sunset = soup.find("div", {"class" : "SunriseSunset--datesContainer--3YG_Q"})
+				sunrise = sunrise_sunset.find("div" , {"data-testid" : "SunriseValue"}).p.string
+				sunset = sunrise_sunset.find("div" , {"data-testid" : "SunsetValue"}).p.string
+				sunrise_split = sunrise.split(':')
+				sunrise_dateTime = (datetime.datetime.now()).replace(hour=int(sunrise_split[0]), minute=int(sunrise_split[1]))
+				sunset_split = sunset.split(':')
+				sunset_dateTime = (datetime.datetime.now()).replace(hour=int(sunset_split[0]), minute=(int(sunset_split[1])))
+				current_dateTime = datetime.datetime.now()
+				currentWeather = current_section.find("div", { "class" : "CurrentConditions--primary--3xWnK" })
+				temperature = currentWeather.span.string
+				weather_condition = currentWeather.div.string
 				output +=  'Current: ' + getIcon(weather_condition) + temperature + printing_style if options.verbose else ' ' + getIcon(weather_condition) + " " + temperature + 'C' + printing_style
-
+			if options.location:
+				location = current_section.find("h1", {"class" : "CurrentConditions--location--1Ayv3"}).text
+				output += location + printing_style
 			if any(details_dict.values()) or options.details:
 				details = soup.select('section[data-testid^=TodaysDetailsModule]')[0]
 				other_details_list = details.select('div[data-testid^=WeatherDetailsListItem]')
