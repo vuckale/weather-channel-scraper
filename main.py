@@ -12,6 +12,8 @@ url = ""
 current_dateTime = None
 sunset_dateTime = None
 sunrise_dateTime = None
+day_light = None
+day_light_left = None
 soup = None
 options = None
 
@@ -115,13 +117,11 @@ def iterate_details(details, index):
 
 
 def draw_sun_position():
-	global current_dateTime, sunset_dateTime, sunrise_dateTime
+	global day_light, current_dateTime, sunset_dateTime, sunrise_dateTime
 	if sunIsUp():
-		diff = sunset_dateTime - sunrise_dateTime
-		step = diff.seconds/10
-		current_diff = sunset_dateTime - current_dateTime
-		current_diff_step = current_diff/step
-		sun_pos = abs(round(current_diff_step.seconds) - 10)
+		step = day_light.seconds/10
+		day_light_left_step = day_light_left/step
+		sun_pos = abs(round(day_light_left_step.seconds) - 10)
 		output = ""
 		for i in range(0, 11):
 			if i == sun_pos:
@@ -182,10 +182,16 @@ def main():
                   help="print moon-phase for today")
 	parser.add_option("--sun-position",
                   action="store_true", dest="sun_position",
-                  help="print moon-phase for today")
+                  help="print a graphical representation of current sun position")
 	parser.add_option("--location",
                   action="store_true", dest="location",
-                  help="print moon-phase for today")
+                  help="print a location")
+	parser.add_option("--day-light-duration",
+                  action="store_true", dest="day_light_duration",
+                  help="print how long does day light last")
+	parser.add_option("--day-light-left",
+                  action="store_true", dest="day_light_left",
+                  help="print how long is left before day light ends")
 
 	(options, args) = parser.parse_args()
 
@@ -218,7 +224,7 @@ def main():
 
 	printing_style = ' ' + str(options.one_line) + ' ' if options.one_line else '\n'
 
-	global 	current_dateTime, sunset_dateTime, sunrise_dateTime, url, soup
+	global 	current_dateTime, sunset_dateTime, sunrise_dateTime, url, soup, day_light, day_light_left
 	if not url and (not options.url):
 			print('url not specified: visit https://weather.com/en-GB/, enter your destination and pate url in \'url\' variable')
 	else:
@@ -228,19 +234,18 @@ def main():
 			else:
 				html_doc = requests.get(options.url).text
 			soup = BeautifulSoup(html_doc, 'html.parser')
-
+			# converting sunrise/sunset into datetime
+			sunrise_sunset = soup.find("div", {"class" : "SunriseSunset--datesContainer--3YG_Q"})
+			sunrise = sunrise_sunset.find("div" , {"data-testid" : "SunriseValue"}).p.string
+			sunset = sunrise_sunset.find("div" , {"data-testid" : "SunsetValue"}).p.string
+			sunrise_split = sunrise.split(':')
+			sunrise_dateTime = (datetime.datetime.now()).replace(hour=int(sunrise_split[0]), minute=int(sunrise_split[1]))
+			sunset_split = sunset.split(':')
+			sunset_dateTime = (datetime.datetime.now()).replace(hour=int(sunset_split[0]), minute=(int(sunset_split[1])))
+			current_dateTime = datetime.datetime.now()
 			if options.current or options.location:
 				current_section = soup.select('div[id^=WxuCurrentConditions-main-b3094163-ef75-4558-8d9a-e35e6b9b1034]')[0]
 			if options.current:
-				# converting sunrise/sunset into datetime
-				sunrise_sunset = soup.find("div", {"class" : "SunriseSunset--datesContainer--3YG_Q"})
-				sunrise = sunrise_sunset.find("div" , {"data-testid" : "SunriseValue"}).p.string
-				sunset = sunrise_sunset.find("div" , {"data-testid" : "SunsetValue"}).p.string
-				sunrise_split = sunrise.split(':')
-				sunrise_dateTime = (datetime.datetime.now()).replace(hour=int(sunrise_split[0]), minute=int(sunrise_split[1]))
-				sunset_split = sunset.split(':')
-				sunset_dateTime = (datetime.datetime.now()).replace(hour=int(sunset_split[0]), minute=(int(sunset_split[1])))
-				current_dateTime = datetime.datetime.now()
 				currentWeather = current_section.find("div", { "class" : "CurrentConditions--primary--3xWnK" })
 				temperature = currentWeather.span.string
 				weather_condition = currentWeather.div.string
@@ -301,6 +306,20 @@ def main():
 				for i in range (0, len(other_details_list)):
 					detail = iterate_details(other_details_list, i)
 					output += detail[0] + ': ' + detail[1] + printing_style if options.verbose else icons_list[i + 3] + detail[1] + printing_style
+
+			if options.sun_position or options.day_light_duration or options.day_light_left:
+				day_light = sunset_dateTime -sunrise_dateTime
+				day_light_left = sunset_dateTime - current_dateTime
+
+			if options.day_light_duration:
+				day_light_delta = str(day_light).split(':')
+				day_light_string = day_light_delta[0] + 'h ' + day_light_delta[1] + 'm' + printing_style
+				output += 'Day light duration: ' + day_light_string if options.verbose else day_light_string
+
+			if options.day_light_left:
+				day_light_left_delta = str(day_light_left).split(':')
+				day_light_left_string = day_light_left_delta[0] + 'h ' + day_light_left_delta[1] + 'm' + printing_style
+				output += 'Day light left: ' + day_light_left_string if options.verbose else day_light_left_string
 
 			if options.sun_position and sunIsUp():
 				output += draw_sun_position() + printing_style
