@@ -17,6 +17,7 @@ day_light_left = None
 soup = None
 options = None
 
+
 def sunIsUp():
 	global current_dateTime, sunset_dateTime, sunrise_dateTime
 	if (current_dateTime <= sunset_dateTime and current_dateTime >= sunrise_dateTime):
@@ -74,6 +75,7 @@ details_dict = {
 	"--d-moon-phase" : False
 }
 
+
 icons = {
 	"--current" : ' ',
 	"--d-feels-like" : '󰙍 ',
@@ -94,6 +96,10 @@ def check_options(option, opt_str, value, parser):
 		print("ERROR: either option -d, --details alone or multiple --d-* options can be passed")
 		sys.exit()
 	details_dict[opt_str] = True
+
+
+def url_usage():
+	print('visit https://weather.com/en-GB/, enter your destination and pate url in \'url\' variable')
 
 
 def iterate_details(details, index):
@@ -225,8 +231,17 @@ def main():
 	printing_style = ' ' + str(options.one_line) + ' ' if options.one_line else '\n'
 
 	global 	current_dateTime, sunset_dateTime, sunrise_dateTime, url, soup, day_light, day_light_left
-	if not url and (not options.url):
-			print('url not specified: visit https://weather.com/en-GB/, enter your destination and pate url in \'url\' variable')
+
+	if options.url:
+		url = options.url
+	if not url:
+		print('ERROR: url not specified: ', end='')
+		url_usage()
+		sys.exit()
+	elif not url.startswith('https://weather.com/en-GB/weather/today/l/'):
+		print('ERROR: url has to have a form: https://weather.com/en-GB/weather/today/l/')
+		url_usage()
+		sys.exit()
 	else:
 		try:
 			if url:
@@ -243,16 +258,20 @@ def main():
 			sunset_split = sunset.split(':')
 			sunset_dateTime = (datetime.datetime.now()).replace(hour=int(sunset_split[0]), minute=(int(sunset_split[1])))
 			current_dateTime = datetime.datetime.now()
+
 			if options.current or options.location:
 				current_section = soup.select('div[id^=WxuCurrentConditions-main-b3094163-ef75-4558-8d9a-e35e6b9b1034]')[0]
+
 			if options.current:
 				currentWeather = current_section.find("div", { "class" : "CurrentConditions--primary--3xWnK" })
 				temperature = currentWeather.span.string
 				weather_condition = currentWeather.div.string
 				output +=  'Current: ' + getIcon(weather_condition) + temperature + printing_style if options.verbose else ' ' + getIcon(weather_condition) + " " + temperature + 'C' + printing_style
+
 			if options.location:
 				location = current_section.find("h1", {"class" : "CurrentConditions--location--1Ayv3"}).text
 				output += location + printing_style
+
 			if any(details_dict.values()) or options.details:
 				details = soup.select('section[data-testid^=TodaysDetailsModule]')[0]
 				other_details_list = details.select('div[data-testid^=WeatherDetailsListItem]')
