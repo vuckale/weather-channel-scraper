@@ -198,6 +198,9 @@ def main():
 	parser.add_option("--day-light-left",
                   action="store_true", dest="day_light_left",
                   help="print how long is left before day light ends")
+	parser.add_option("--current-timestamp",
+                  action="store_true", dest="current_timestamp",
+                  help="print timestamp when current temperature was measured")
 
 	(options, args) = parser.parse_args()
 
@@ -271,7 +274,9 @@ def main():
 			if options.location:
 				location = current_section.find("h1", {"class" : "CurrentConditions--location--1Ayv3"}).text
 				output += location + printing_style
-
+			if options.current_timestamp:
+				timestamp = current_section.find("div", {"class" : "CurrentConditions--timestamp--1SWy5"}).text
+				output += timestamp + printing_style
 			if any(details_dict.values()) or options.details:
 				details = soup.select('section[data-testid^=TodaysDetailsModule]')[0]
 				other_details_list = details.select('div[data-testid^=WeatherDetailsListItem]')
