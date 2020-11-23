@@ -77,9 +77,8 @@ details_dict = {
 
 
 icons = {
-	"--current" : ' ',
-	"--d-feels-like" : '󰙍 ',
-	"--d-sunrise-sunset" : '󰖜󰖛 ',
+	"--d-feels-like" : '󰙍',
+	"--d-sunrise-sunset" : '󰖜󰖛',
 	"--d-high-low" : ' ',
 	"--d-wind" : ' ',
 	"--d-humidity" : ' ',
@@ -265,18 +264,21 @@ def main():
 			if options.current or options.location:
 				current_section = soup.select('div[id^=WxuCurrentConditions-main-b3094163-ef75-4558-8d9a-e35e6b9b1034]')[0]
 
-			if options.current:
-				currentWeather = current_section.find("div", { "class" : "CurrentConditions--primary--3xWnK" })
-				temperature = currentWeather.span.string
-				weather_condition = currentWeather.div.string
-				output +=  'Current: ' + getIcon(weather_condition) + temperature + printing_style if options.verbose else ' ' + getIcon(weather_condition) + " " + temperature + 'C' + printing_style
+			if options.current_timestamp:
+				timestamp = current_section.find("div", {"class" : "CurrentConditions--timestamp--1SWy5"}).text
+				# output += timestamp + printing_style
 
 			if options.location:
 				location = current_section.find("h1", {"class" : "CurrentConditions--location--1Ayv3"}).text
 				output += location + printing_style
-			if options.current_timestamp:
-				timestamp = current_section.find("div", {"class" : "CurrentConditions--timestamp--1SWy5"}).text
-				output += timestamp + printing_style
+
+			if options.current:
+				currentWeather = current_section.find("div", { "class" : "CurrentConditions--primary--3xWnK" })
+				temperature = currentWeather.span.string
+				weather_condition = currentWeather.div.string
+				output +=  'Current: ' + getIcon(weather_condition) + temperature + (' ' + timestamp if options.current_timestamp else '') + printing_style if options.verbose else getIcon(weather_condition) + " " + temperature + (' ' + timestamp if options.current_timestamp else '') + printing_style
+
+
 			if any(details_dict.values()) or options.details:
 				details = soup.select('section[data-testid^=TodaysDetailsModule]')[0]
 				other_details_list = details.select('div[data-testid^=WeatherDetailsListItem]')
