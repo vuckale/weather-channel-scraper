@@ -112,7 +112,7 @@ def iterate_details(details, index):
 		detail = details[index]
 		label = detail.select('div[data-testid^=WeatherDetailsLabel]')
 		data = detail.select('div[data-testid^=wxData]')
-		if detail.svg['name'] ==  'pressure':
+		if detail.svg['name'] == 'pressure':
 			svg = data[0].svg
 			return [label[0].text, misc_icons[svg['name']] + data[0].text]
 		else:
@@ -343,22 +343,23 @@ def main():
 					detail = iterate_details(other_details_list, i)
 					output += detail[0] + ': ' + detail[1] + printing_style if options.verbose else icons_list[i + 2] + detail[1] + printing_style
 
-			if options.sun_position or options.day_light_duration or options.day_light_left:
-				day_light = sunset_dateTime -sunrise_dateTime
-				day_light_left = sunset_dateTime - current_dateTime
+			if sunIsUp():
+				if options.sun_position or options.day_light_duration or options.day_light_left:
+					day_light = sunset_dateTime -sunrise_dateTime
+					day_light_left = sunset_dateTime - current_dateTime
 
-			if options.day_light_duration:
-				day_light_delta = str(day_light).split(':')
-				day_light_string = day_light_delta[0] + 'h ' + day_light_delta[1] + 'm' + printing_style
-				output += 'Day light duration: ' + day_light_string if options.verbose else day_light_string
+				if options.day_light_duration:
+					day_light_delta = str(day_light).split(':')
+					day_light_string = day_light_delta[0] + 'h ' + day_light_delta[1] + 'm' + printing_style
+					output += 'Day light duration: ' + day_light_string if options.verbose else day_light_string
 
-			if options.day_light_left:
-				day_light_left_delta = str(day_light_left).split(':')
-				day_light_left_string = day_light_left_delta[0] + 'h ' + day_light_left_delta[1] + 'm' + printing_style
-				output += 'Day light left: ' + day_light_left_string if options.verbose else day_light_left_string
+				if options.day_light_left:
+					day_light_left_delta = str(day_light_left).split(':')
+					day_light_left_string = day_light_left_delta[0] + 'h ' + day_light_left_delta[1] + 'm' + printing_style
+					output += 'Day light left: ' + day_light_left_string if options.verbose else day_light_left_string
 
-			if options.sun_position and sunIsUp():
-				output += draw_sun_position() + printing_style
+				if options.sun_position:
+					output += draw_sun_position() + printing_style
 
 			if options.one_line:
 				print(output[:-3])
