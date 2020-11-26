@@ -112,11 +112,13 @@ def iterate_details(details, index):
 		detail = details[index]
 		label = detail.select('div[data-testid^=WeatherDetailsLabel]')
 		data = detail.select('div[data-testid^=wxData]')
+
 		if detail.svg['name'] == 'pressure':
 			svg = data[0].svg
-			return [label[0].text, misc_icons[svg['name']] + data[0].text]
-		else:
-			return [label[0].text, data[0].text]
+			if svg != None:
+				return [label[0].text, misc_icons[svg['name']] + data[0].text]
+
+		return [label[0].text, data[0].text]
 	elif index == -1:
 		# for scraping feels like section
 		feels_like = details.select('div[data-testid^=FeelsLikeSection]')[0]
