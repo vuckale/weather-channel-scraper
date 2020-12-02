@@ -51,7 +51,11 @@ def getIcon(weather_condition):
 		'Showers in the Vicinity' : '',
 		'T-Storms' : '',
 		'Rain' : '',
+		'Light Snow' : '',
+		'Light Freezing Rain' : '',
 		'Snow' : '',
+		'Snow Shower' : '',
+		'Freezing Drizzle' : '󰜗',
 		'Windy':''
 	}
 
@@ -372,3 +376,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
