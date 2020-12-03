@@ -95,7 +95,8 @@ weather_icons = {
 
 misc_icons = {
 	"arrow-down" : '󰁅 ',
-	"arrow-up" : '󰁝 '
+	"arrow-up" : '󰁝 ',
+	"air-quality" : '󰌪 '
 }
 
 
@@ -216,6 +217,9 @@ def main():
 	parser.add_option("--current-timestamp",
                   action="store_true", dest="current_timestamp",
                   help="print timestamp when current temperature was measured")
+	parser.add_option("--air-quality",
+                  action="store_true", dest="air_quality",
+                  help="print air quality index")
 
 	(options, args) = parser.parse_args()
 
@@ -367,12 +371,18 @@ def main():
 				if options.sun_position:
 					output += draw_sun_position() + printing_style
 
+			if options.air_quality:
+				air_quality_section = soup.select("section[title^='Air Quality Index']")[0]
+				label = air_quality_section.select("header[data-testid^=HeaderTitle]")[0].text
+				value = air_quality_section.select("text[data-testid^=DonutChartValue]")[0].text
+				output += label + ": " + value + printing_style if options.verbose else misc_icons["air-quality"] + value + printing_style
+
 			if options.one_line:
 				print(output[:-3])
 			else:
 				print(output[:-1])
 		except Exception as e:
-			print("X")
+			raise e
 
 if __name__ == "__main__":
     main()
