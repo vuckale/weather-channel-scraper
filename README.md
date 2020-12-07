@@ -85,7 +85,7 @@ Current: Sunny 18°
 ```
 ### Using Weather Icons
 <p align="center">
-  <img src="https://https://github.com/vuckale/weather-channel-scraper/blob/master/screenshot1.png?raw=true" />
+  <img src="https://raw.githubusercontent.com/vuckale/weather-channel-scraper/main/screenshot1.png" />
 </p>
 
 Navigate to the cloned repository and run:
