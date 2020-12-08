@@ -121,3 +121,4 @@ if you get a line that looks somewhat like this it was successfully installed:
 ```
 ~/.local/share/fonts/weathericons-regular-webfont.ttf: Weather Icons:style=Regular
 ```
+After that you can remove `weather-icons/` beacuse only one `.ttf` file was needed to intall the font. 
