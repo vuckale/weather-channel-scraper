@@ -85,7 +85,7 @@ Current: Sunny 18°
 ```
 ### Using Weather Icons
 <p align="center">
-  <img src="https://https://github.com/vuckale/weather-channel-scraper/blob/master/screenshot1.png?raw=true" />
+  <img src="https://raw.githubusercontent.com/vuckale/weather-channel-scraper/main/screenshot1.png" />
 </p>
 
 Navigate to the cloned repository and run:
@@ -121,3 +121,4 @@ if you get a line that looks somewhat like this it was successfully installed:
 ```
 ~/.local/share/fonts/weathericons-regular-webfont.ttf: Weather Icons:style=Regular
 ```
+After that you can remove `weather-icons/` beacuse only one `.ttf` file was needed to intall the font. 
