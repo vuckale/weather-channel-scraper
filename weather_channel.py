@@ -56,7 +56,10 @@ def getIcon(weather_condition):
 		'Snow' : '',
 		'Snow Shower' : '',
 		'Freezing Drizzle' : '󰜗',
-		'Windy':''
+		'Windy':'',
+		'Light Rain/Freezing Rain' : '',
+		'Wintry Mix' : '',
+		'Light Rain' : ''
 	}
 
 	if weather_condition in conditions:
