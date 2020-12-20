@@ -223,6 +223,9 @@ def main():
 	parser.add_option("--air-quality",
                   action="store_true", dest="air_quality",
                   help="print air quality index")
+	parser.add_option("--h-forecast",
+                  action="store_true", dest="hourly_forecast",
+                  help="print hourly forecast")
 
 	(options, args) = parser.parse_args()
 
@@ -380,6 +383,11 @@ def main():
 				value = air_quality_section.select("text[data-testid^=DonutChartValue]")[0].text
 				output += label + ": " + value + printing_style if options.verbose else misc_icons["air-quality"] + value + printing_style
 
+			if options.hourly_forecast:
+				hourly_forecast = soup.select('div[id^=WxuHourlyWeatherCard-main-29584a07-3742-4598-bc2a-f950a9a4d900]')[0]
+				hourly_forecast_section = hourly_forecast.select('div[class^=HourlyWeatherCard--TableWrapper--2kboH]')[0]
+				weather_table = hourly_forecast_section.select('ul[data-testid^=WeatherTable]')[0]
+
 			if options.one_line:
 				print(output[:-3])
 			else:
@@ -389,4 +397,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
