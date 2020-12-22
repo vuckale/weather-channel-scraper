@@ -2,7 +2,6 @@
 from bs4 import BeautifulSoup
 import requests
 import datetime
-from getopt import getopt
 import sys
 from optparse import OptionParser, OptionValueError
 import optparse
