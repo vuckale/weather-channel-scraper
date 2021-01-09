@@ -283,8 +283,8 @@ def main():
 				html_doc = requests.get(url).text
 			else:
 				html_doc = requests.get(options.url).text
+
 			soup = BeautifulSoup(html_doc, 'html.parser')
-			# converting sunrise/sunset into datetime
 			sunrise_sunset = soup.find("div", {"class" : "SunriseSunset--datesContainer--3YG_Q"})
 			sunrise = sunrise_sunset.find("div" , {"data-testid" : "SunriseValue"}).p.string
 			sunset = sunrise_sunset.find("div" , {"data-testid" : "SunsetValue"}).p.string
@@ -360,6 +360,8 @@ def main():
 				hourly_forecast = soup.select('div[id^=WxuHourlyWeatherCard-main-29584a07-3742-4598-bc2a-f950a9a4d900]')[0]
 				hourly_forecast_section = hourly_forecast.select('div[class^=HourlyWeatherCard--TableWrapper--2kboH]')[0]
 				weather_table = hourly_forecast_section.select('ul[data-testid^=WeatherTable]')[0]
+				for temp in weather_table.select('span[data-testid^=TemperatureValue]'):
+					print(temp.text)
 
 			if options.one_line:
 				print(output[:-2])
