@@ -124,9 +124,10 @@ def iterate_details(details, index):
 		data = detail.select('div[data-testid^=wxData]')
 
 		if detail.svg['name'] == 'pressure':
+			parse_pressure = re.findall("\d+\.\d+", data[0].text)
 			svg = data[0].svg
 			if svg != None:
-				return [label[0].text, misc_icons[svg['name']] + data[0].text]
+				return [label[0].text, misc_icons[svg['name']] + parse_pressure[0] + " mb"]
 		
 		if detail.svg['name'] == 'wind':
 			parse_wind = re.sub(r"\D", "", data[0].text)
@@ -331,7 +332,7 @@ def main():
 				feels_like = iterate_details(details, -1)
 				output += feels_like[0] + ': ' + feels_like[1] + printing_style if options.verbose else weather_icons['--d-feels-like'] + feels_like[1] + printing_style
 				sunrise_sunset = iterate_details(details, -2)
-				output += 'sunrise/sunset: ' + sunrise_sunset+ printing_style if options.verbose else weather_icons['--d-sunrise-sunset'] + sunrise_sunset + printing_style
+				output += sunrise_sunset[0] + sunrise_sunset[1] + printing_style if options.verbose else weather_icons['--d-sunrise-sunset'] + sunrise_sunset[1] + printing_style
 				icons_list = list(weather_icons.values())
 				for i in range (0, len(other_details_list)):
 					detail = iterate_details(other_details_list, i)
