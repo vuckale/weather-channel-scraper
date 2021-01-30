@@ -366,11 +366,10 @@ def main():
 				hourly_forecast = soup.select('div[id^=WxuHourlyWeatherCard-main-29584a07-3742-4598-bc2a-f950a9a4d900]')[0]
 				hourly_forecast_section = hourly_forecast.select('div[class^=HourlyWeatherCard--TableWrapper--2kboH]')[0]
 				weather_table = hourly_forecast_section.select('ul[data-testid^=WeatherTable]')[0]
-				#print(weather_table)
 				time = weather_table.find_all("span", {"class" : "Ellipsis--ellipsis--lfjoB"})
-				#print(time)
 				for temp, time in zip(weather_table.select('span[data-testid^=TemperatureValue]'), time):
-					print(temp.text + ' ' + str(time.text), end=' ')
+					output += temp.text + ' ' + str(time.text) + ' | '
+				output = output[:-2]
 
 			if options.one_line:
 				print(output[:-2])
