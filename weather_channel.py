@@ -321,7 +321,9 @@ def main():
 				parse_temp = re.sub(r"\D", "", temperature)
 				if options.fahrenheit:
 					temp = int(parse_temp)
-					temperature = str((temp * 1.8) + 32)
+					temperature = str((temp * 1.8) + 32) + "°F"
+				else: 
+					temperature += "C"
 				output +=  'Current: ' + getIcon(weather_condition) + temperature + (' ' + timestamp if options.current_timestamp else '') + printing_style if options.verbose else getIcon(weather_condition) + " " + temperature + (' ' + timestamp if options.current_timestamp else '') + printing_style
 
 			if any(details_dict.values()) or options.details:
