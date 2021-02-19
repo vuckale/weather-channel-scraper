@@ -1,5 +1,5 @@
 # The Weather Channel Scraper
-A python script that scrapes weather related data from [weather.com](https://weather.com/) with the help of `bs4`
+Python script that scrapes weather data from [weather.com](https://weather.com/) with the help of `bs4`
 ## How to run
 
 ### Environment
