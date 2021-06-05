@@ -58,7 +58,8 @@ def getIcon(weather_condition):
 		'Snow' : '',
 		'Snow Shower' : '',
 		'Freezing Drizzle' : '󰜗',
-		'Windy':''
+		'Windy':'',
+		'Thunderstorm': '󰙾'
 		# Light Rain/Freezing Rain
 		# Wintry Mix
 		# Light Rain
