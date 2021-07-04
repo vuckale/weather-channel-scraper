@@ -9,8 +9,11 @@ from optparse import OptionParser, OptionValueError
 import optparse
 import re
 
+import secrets
+
 # global variables
-url = ""
+url = secrets.weather_channel_py_url
+
 current_dateTime = None
 sunset_dateTime = None
 sunrise_dateTime = None
@@ -59,10 +62,11 @@ def getIcon(weather_condition):
 		'Snow Shower' : '',
 		'Freezing Drizzle' : '󰜗',
 		'Windy':'',
-		'Thunderstorm': '󰙾'
+		'Thunderstorm': '󰙾',
+		'Light Rain with Thunder': '󰙾',
 		# Light Rain/Freezing Rain
 		# Wintry Mix
-		# Light Rain
+		'Light Rain': ''
 	}
 
 	if weather_condition in conditions:
@@ -91,7 +95,8 @@ weather_icons = {
 	"--d-sunrise-sunset" : '󰖜󰖛 ',
 	"--d-high-low" : '  ',
 	"--d-wind" : '  ',
-	"--d-humidity" : '  ',
+	# "--d-humidity" : '  ',
+	"--d-humidity" : '',
 	"--d-dew-point" : '  ',
 	"--d-pressure" : '  ',
 	"--d-uw-index" : ' 󰖙 ',
@@ -238,7 +243,9 @@ def main():
 	parser.add_option("-f",
 				action="store_true", dest="fahrenheit",
 				help="print temperature in fahrenheit instead of celsius")
-
+	parser.add_option("--alert",
+                  action="store_true", dest="alert",
+                  help="print if some alert is present")
 
 	(options, args) = parser.parse_args()
 
@@ -264,17 +271,17 @@ def main():
 		parser.print_help()
 		sys.exit()
 
-	if options.one_line:
-		if len(options.one_line) > 1:
-			print("ERROR: " + options.one_line + " is invalid --one-line argument, it is a character that will be used as a delimiter. It can't contain more than 1 character.")
-			print("Maybe you forgot to put it and placed another option instead?")
-			sys.exit()
+	# if options.one_line:
+	# 	if len(options.one_line) > 1:
+	# 		print("ERROR: " + options.one_line + " is invalid --one-line argument, it is a character that will be used as a delimiter. It can't contain more than 1 character.")
+	# 		print("Maybe you forgot to put it and placed another option instead?")
+	# 		sys.exit()
 
 	if options.one_line and count_None == len(options.__dict__.items()) - 1:
 		print("ERROR: --one-line option alone doesn't have anything to print")
 		sys.exit()
 
-	printing_style = ' ' + str(options.one_line) + '' if options.one_line else '\n'
+	printing_style = "" + str(options.one_line) + "" if options.one_line else '\n'
 
 	global 	current_dateTime, sunset_dateTime, sunrise_dateTime, url, soup, day_light, day_light_left
 
@@ -294,9 +301,9 @@ def main():
 				html_doc = requests.get(url).text
 			else:
 				html_doc = requests.get(options.url).text
-
 			soup = BeautifulSoup(html_doc, 'html.parser')
-			sunrise_sunset = soup.find("div", {"class" : "SunriseSunset--datesContainer--3YG_Q"})
+			# converting sunrise/sunset into datetime
+			sunrise_sunset = soup.find("div", {"class" : "SunriseSunset--datesContainer--2pajx"})
 			sunrise = sunrise_sunset.find("div" , {"data-testid" : "SunriseValue"}).p.string
 			sunset = sunrise_sunset.find("div" , {"data-testid" : "SunsetValue"}).p.string
 			sunrise_split = sunrise.split(':')
@@ -310,26 +317,23 @@ def main():
 
 			if options.current_timestamp:
 				timestamp = current_section.find("div", {"class" : "CurrentConditions--timestamp--1SWy5"}).text
+				# output += timestamp + printing_style
 
 			if options.location:
 				location = current_section.find("h1", {"class" : "CurrentConditions--location--1Ayv3"}).text
 				output += location + printing_style
 
 			if options.current:
-				currentWeather = current_section.find("div", { "class" : "CurrentConditions--primary--3xWnK" })
+				'//*[@id="WxuCurrentConditions-main-b3094163-ef75-4558-8d9a-e35e6b9b1034"]/div/section/div/div[2]/div[1]'
+				'/html/body/div[1]/main/div[2]/main/div[1]/div/section/div/div[2]/div[1]'
+				currentWeather = current_section.find("div", { "class" : "CurrentConditions--primary--39Y3f" })
 				temperature = currentWeather.span.string
 				weather_condition = currentWeather.div.string
-				parse_temp = re.sub(r"\D", "", temperature)
-				if options.fahrenheit:
-					temperature = str((int(parse_temp) * 1.8) + 32) + "°F"
-				else: 
-					temperature = str(parse_temp) + "°C"
 				output +=  'Current: ' + getIcon(weather_condition) + temperature + (' ' + timestamp if options.current_timestamp else '') + printing_style if options.verbose else getIcon(weather_condition) + " " + temperature + (' ' + timestamp if options.current_timestamp else '') + printing_style
 
 			if any(details_dict.values()) or options.details:
 				details = soup.select('section[data-testid^=TodaysDetailsModule]')[0]
 				other_details_list = details.select('div[data-testid^=WeatherDetailsListItem]')
-
 			for i in detail_options:
 				if i[1] >= 0:
 					x = other_details_list
@@ -342,7 +346,7 @@ def main():
 				feels_like = iterate_details(details, -1)
 				output += feels_like[0] + ': ' + feels_like[1] + printing_style if options.verbose else weather_icons['--d-feels-like'] + feels_like[1] + printing_style
 				sunrise_sunset = iterate_details(details, -2)
-				output += sunrise_sunset[0] + sunrise_sunset[1] + printing_style if options.verbose else weather_icons['--d-sunrise-sunset'] + sunrise_sunset[1] + printing_style
+				output += 'sunrise/sunset: ' + sunrise_sunset[1] + printing_style if options.verbose else weather_icons['--d-sunrise-sunset'] + sunrise_sunset[1] + printing_style
 				icons_list = list(weather_icons.values())
 				for i in range (0, len(other_details_list)):
 					detail = iterate_details(other_details_list, i)
@@ -371,7 +375,7 @@ def main():
 				label = air_quality_section.select("header[data-testid^=HeaderTitle]")[0].text
 				value = air_quality_section.select("text[data-testid^=DonutChartValue]")[0].text
 				output += label + ": " + value + printing_style if options.verbose else misc_icons["air-quality"] + value + printing_style
-
+			
 			if options.hourly_forecast:
 				hourly_forecast = soup.select('div[id^=WxuHourlyWeatherCard-main-29584a07-3742-4598-bc2a-f950a9a4d900]')[0]
 				hourly_forecast_section = hourly_forecast.select('div[class^=HourlyWeatherCard--TableWrapper--2kboH]')[0]
@@ -380,9 +384,15 @@ def main():
 				for temp, time in zip(weather_table.select('span[data-testid^=TemperatureValue]'), time):
 					output += temp.text + ' ' + str(time.text) + ' | '
 				output = output[:-2]
+			
+
+			if options.alert:
+				alert_section = soup.find("a", {"class" : "AlertHeadline--AlertHeadline--2w1z2"}).text
+				if alert_section:
+					output += "󰈅 "
 
 			if options.one_line:
-				print(output[:-2])
+				print(output[:-11])
 			else:
 				print(output[:-1])
 		except Exception as e:
