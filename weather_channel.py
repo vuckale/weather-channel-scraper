@@ -237,15 +237,7 @@ def main():
 	parser.add_option("--air-quality",
                   action="store_true", dest="air_quality",
                   help="print air quality index")
-	parser.add_option("--h-forecast",
-				action="store_true", dest="hourly_forecast",
-				help="print hourly forecast")
-	parser.add_option("-f",
-				action="store_true", dest="fahrenheit",
-				help="print temperature in fahrenheit instead of celsius")
-	parser.add_option("--alert",
-                  action="store_true", dest="alert",
-                  help="print if some alert is present")
+
 
 	(options, args) = parser.parse_args()
 
@@ -269,6 +261,10 @@ def main():
 
 	if count_None == len(options.__dict__.items()) and not any(details_dict.values()):
 		parser.print_help()
+		sys.exit()
+
+	if options.current_timestamp and not options.current:
+		print("ERROR: option \"--current-timestamp\" can't be passed without option \"current\"")
 		sys.exit()
 
 	# if options.one_line:
@@ -316,7 +312,7 @@ def main():
 				current_section = soup.select('div[id^=WxuCurrentConditions-main-b3094163-ef75-4558-8d9a-e35e6b9b1034]')[0]
 
 			if options.current_timestamp:
-				timestamp = current_section.find("div", {"class" : "CurrentConditions--timestamp--1SWy5"}).text
+				timestamp = current_section.find("div", {"class" : "CurrentConditions--timestamp--3_-CV"}).text
 				# output += timestamp + printing_style
 
 			if options.location:
@@ -375,21 +371,6 @@ def main():
 				label = air_quality_section.select("header[data-testid^=HeaderTitle]")[0].text
 				value = air_quality_section.select("text[data-testid^=DonutChartValue]")[0].text
 				output += label + ": " + value + printing_style if options.verbose else misc_icons["air-quality"] + value + printing_style
-			
-			if options.hourly_forecast:
-				hourly_forecast = soup.select('div[id^=WxuHourlyWeatherCard-main-29584a07-3742-4598-bc2a-f950a9a4d900]')[0]
-				hourly_forecast_section = hourly_forecast.select('div[class^=HourlyWeatherCard--TableWrapper--2kboH]')[0]
-				weather_table = hourly_forecast_section.select('ul[data-testid^=WeatherTable]')[0]
-				time = weather_table.find_all("span", {"class" : "Ellipsis--ellipsis--lfjoB"})
-				for temp, time in zip(weather_table.select('span[data-testid^=TemperatureValue]'), time):
-					output += temp.text + ' ' + str(time.text) + ' | '
-				output = output[:-2]
-			
-
-			if options.alert:
-				alert_section = soup.find("a", {"class" : "AlertHeadline--AlertHeadline--2w1z2"}).text
-				if alert_section:
-					output += "󰈅 "
 
 			if options.one_line:
 				print(output[:-11])
