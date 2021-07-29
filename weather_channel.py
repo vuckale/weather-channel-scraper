@@ -299,7 +299,7 @@ def main():
 				html_doc = requests.get(options.url).text
 			soup = BeautifulSoup(html_doc, 'html.parser')
 			# converting sunrise/sunset into datetime
-			sunrise_sunset = soup.find("div", {"class" : "SunriseSunset--datesContainer--1a5tE"})
+			sunrise_sunset = soup.find("div", {"class" : "SunriseSunset--datesContainer--2pajx"})
 			sunrise = sunrise_sunset.find("div" , {"data-testid" : "SunriseValue"}).p.string
 			sunset = sunrise_sunset.find("div" , {"data-testid" : "SunsetValue"}).p.string
 			sunrise_split = sunrise.split(':')
@@ -322,7 +322,7 @@ def main():
 			if options.current:
 				'//*[@id="WxuCurrentConditions-main-b3094163-ef75-4558-8d9a-e35e6b9b1034"]/div/section/div/div[2]/div[1]'
 				'/html/body/div[1]/main/div[2]/main/div[1]/div/section/div/div[2]/div[1]'
-				currentWeather = current_section.find("div", { "class" : "CurrentConditions--primary--2SVPh" })
+				currentWeather = current_section.find("div", { "class" : "CurrentConditions--primary--39Y3f" })
 				temperature = currentWeather.span.string
 				weather_condition = currentWeather.div.string
 				output +=  'Current: ' + getIcon(weather_condition) + temperature + (' ' + timestamp if options.current_timestamp else '') + printing_style if options.verbose else getIcon(weather_condition) + " " + temperature + (' ' + timestamp if options.current_timestamp else '') + printing_style
