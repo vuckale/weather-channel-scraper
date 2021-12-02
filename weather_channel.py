@@ -56,6 +56,7 @@ def getIcon(weather_condition):
 		'Showers in the Vicinity' : '',
 		'T-Storms' : '',
 		'Rain' : '',
+		'Rain and Snow' : '󰜗',
 		'Light Snow' : '',
 		'Light Freezing Rain' : '',
 		'Snow' : '',
