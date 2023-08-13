@@ -9,10 +9,8 @@ from optparse import OptionParser, OptionValueError
 import optparse
 import re
 
-import secrets
-
 # global variables
-url = secrets.weather_channel_py_url
+url = ""
 
 current_dateTime = None
 sunset_dateTime = None
@@ -66,7 +64,10 @@ def getIcon(weather_condition):
 		'Thunderstorm': '󰙾',
 		'Light Rain with Thunder': '󰙾',
 		# Light Rain/Freezing Rain
+		# Rain/Freezing Rain
 		# Wintry Mix
+		# Drizzle
+	    # Heavy Rain
 		'Light Rain': ''
 	}
 
@@ -96,8 +97,8 @@ weather_icons = {
 	"--d-sunrise-sunset" : '󰖜󰖛 ',
 	"--d-high-low" : '  ',
 	"--d-wind" : '  ',
-	# "--d-humidity" : '  ',
-	"--d-humidity" : '',
+	"--d-humidity" : '  ',
+	#"--d-humidity" : '',
 	"--d-dew-point" : '  ',
 	"--d-pressure" : '  ',
 	"--d-uw-index" : ' 󰖙 ',
@@ -121,26 +122,23 @@ def check_options(option, opt_str, value, parser):
 
 
 def url_usage():
-	print('visit https://weather.com/en-GB/, enter your destination and pate url in \'url\' variable')
+	print('visit https://weather.com/en-GB/, enter your destination and paste url in \'url\' variable')
 
 
-def iterate_details(details, index):
+def parse_details(details, index):
 	if index >= 0:
 		detail = details[index]
 		label = detail.select('div[data-testid^=WeatherDetailsLabel]')
 		data = detail.select('div[data-testid^=wxData]')
-
 		if detail.svg['name'] == 'pressure':
 			parse_pressure = re.findall("\d+\.\d+", data[0].text)
 			svg = data[0].svg
 			if svg != None:
 				return [label[0].text, misc_icons[svg['name']] + parse_pressure[0] + " mb"]
-		
 		if detail.svg['name'] == 'wind':
 			parse_wind = re.sub(r"\D", "", data[0].text)
 			mph_to_kmh = int(parse_wind) * 1.609
 			return [label[0].text, str(round(mph_to_kmh, 2)) + " kmh"]
-
 		return [label[0].text, data[0].text]
 	elif index == -1:
 		# for scraping feels like section
@@ -169,7 +167,6 @@ def draw_sun_position():
 			else:
 				output += '-'
 		return output
-
 
 def main():
 	global options
@@ -239,20 +236,17 @@ def main():
                   action="store_true", dest="air_quality",
                   help="print air quality index")
 
-
 	(options, args) = parser.parse_args()
 
+	# parse detail_options i.e --d-*
 	detail_options = []
 	for i in range (1, len(sys.argv)):
 		if str(sys.argv[i]) in details_dict.keys():
 			detail_options.append((sys.argv[i], details_dict[sys.argv[i]][1]))
 
-	if options.details:
-		for key, value in details_dict.items():
-				if value[0]:
-					print("ERROR: either option -d, --details alone or multiple --d-* options can be passed")
-					sys.exit()
-
+	# count the number of options passed
+	# OptionParser returns a dictionary with None or True assigned to each option
+	# option "-url" is not counted since it does not generate any output
 	count_None = 0
 	for key, value in options.__dict__.items():
 		if value != None and key != 'url':
@@ -260,7 +254,9 @@ def main():
 		else:
 			count_None += 1
 
-	if count_None == len(options.__dict__.items()) and not any(details_dict.values()):
+	# if every option counted is None then 0 options are passed
+	# detail options are considered separately
+	if count_None == len(options.__dict__.items()) and len(detail_options) == 0:
 		parser.print_help()
 		sys.exit()
 
@@ -280,7 +276,7 @@ def main():
 
 	printing_style = "" + str(options.one_line) + "" if options.one_line else '\n'
 
-	global 	current_dateTime, sunset_dateTime, sunrise_dateTime, url, soup, day_light, day_light_left
+	global current_dateTime, sunset_dateTime, sunrise_dateTime, url, soup, day_light, day_light_left
 
 	if options.url:
 		url = options.url
@@ -300,7 +296,7 @@ def main():
 				html_doc = requests.get(options.url).text
 			soup = BeautifulSoup(html_doc, 'html.parser')
 			# converting sunrise/sunset into datetime
-			sunrise_sunset = soup.find("div", {"class" : "SunriseSunset--datesContainer--1a5tE"})
+			sunrise_sunset = soup.find('div', id = re.compile("SunriseSunsetContainer.*"))
 			sunrise = sunrise_sunset.find("div" , {"data-testid" : "SunriseValue"}).p.string
 			sunset = sunrise_sunset.find("div" , {"data-testid" : "SunsetValue"}).p.string
 			sunrise_split = sunrise.split(':')
@@ -310,23 +306,23 @@ def main():
 			current_dateTime = datetime.datetime.now()
 
 			if options.current or options.location:
-				current_section = soup.select('div[id^=WxuCurrentConditions-main-b3094163-ef75-4558-8d9a-e35e6b9b1034]')[0]
+				current_section = soup.find('div', id = re.compile("WxuCurrentConditions-main-.*"))
 
 			if options.current_timestamp:
-				timestamp = current_section.find("div", {"class" : "CurrentConditions--timestamp--3_-CV"}).text
-				# output += timestamp + printing_style
+				timestamp = current_section.find("span", {"class" : re.compile("CurrentConditions--timestamp--.*")}).text
 
 			if options.location:
-				location = current_section.find("h1", {"class" : "CurrentConditions--location--1Ayv3"}).text
+				location = current_section.find("h1", {"class" : re.compile("CurrentConditions--location--.*")}).text
 				output += location + printing_style
 
 			if options.current:
-				'//*[@id="WxuCurrentConditions-main-b3094163-ef75-4558-8d9a-e35e6b9b1034"]/div/section/div/div[2]/div[1]'
-				'/html/body/div[1]/main/div[2]/main/div[1]/div/section/div/div[2]/div[1]'
-				currentWeather = current_section.find("div", { "class" : "CurrentConditions--primary--2SVPh" })
-				temperature = currentWeather.span.string
+				currentWeather = current_section.find("div", { "class" : re.compile("CurrentConditions--primary--.*") })
+				temperature = currentWeather.span.text
 				weather_condition = currentWeather.div.string
-				output +=  'Current: ' + getIcon(weather_condition) + temperature + (' ' + timestamp if options.current_timestamp else '') + printing_style if options.verbose else getIcon(weather_condition) + " " + temperature + (' ' + timestamp if options.current_timestamp else '') + printing_style
+				output +=  'Current: ' + getIcon(weather_condition) + temperature + \
+				 (' ' + timestamp if options.current_timestamp else '') + \
+				 printing_style if options.verbose else getIcon(weather_condition) + " " + temperature + \
+				 (' ' + timestamp if options.current_timestamp else '') + printing_style
 
 			if any(details_dict.values()) or options.details:
 				details = soup.select('section[data-testid^=TodaysDetailsModule]')[0]
@@ -336,17 +332,17 @@ def main():
 					x = other_details_list
 				else:
 					x = details
-				a = iterate_details(x, int(i[1]))
+				a = parse_details(x, int(i[1]))
 				output += a[0] + ': ' + a[1] + printing_style if options.verbose else weather_icons[i[0]] + a[1] + printing_style
 
 			if options.details:
-				feels_like = iterate_details(details, -1)
+				feels_like = parse_details(details, -1)
 				output += feels_like[0] + ': ' + feels_like[1] + printing_style if options.verbose else weather_icons['--d-feels-like'] + feels_like[1] + printing_style
-				sunrise_sunset = iterate_details(details, -2)
+				sunrise_sunset = parse_details(details, -2)
 				output += 'sunrise/sunset: ' + sunrise_sunset[1] + printing_style if options.verbose else weather_icons['--d-sunrise-sunset'] + sunrise_sunset[1] + printing_style
 				icons_list = list(weather_icons.values())
 				for i in range (0, len(other_details_list)):
-					detail = iterate_details(other_details_list, i)
+					detail = parse_details(other_details_list, i)
 					output += detail[0] + ': ' + detail[1] + printing_style if options.verbose else icons_list[i + 2] + detail[1] + printing_style
 
 			if sunIsUp():
